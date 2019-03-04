@@ -10,6 +10,10 @@ import pdb
 
 class SaiVox(Contract):
 
+    def par(self):
+        return self.functions.par().call()
+
+
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):
 #            name += '.eth'

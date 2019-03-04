@@ -8,7 +8,33 @@ import pdb
 #      { version: 1, address: addresses.PIT, abi: abis.daiV1.pit }
 # ],
 
+def bytes32(an_int):
+    return (an_int).to_bytes(32, byteorder='big')
+
 class SaiTub(Contract):
+
+    def cup(self, cdp_id):
+        return self.functions.cups(bytes32(cdp_id)).call()
+
+    def tab(self, cdp_id):
+        return self.functions.tab(bytes32(cdp_id)).call()
+
+    def mat(self):
+        return self.functions.mat().call()
+
+    def tag(self):
+        return self.functions.tag().call()
+
+    def per(self):
+        return self.functions.per().call()
+
+    def axe(self):
+        return self.functions.axe().call()
+
+    def ink(self, cdp_id):
+        return self.functions.ink(bytes32(cdp_id)).call()
+
+
 
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):
