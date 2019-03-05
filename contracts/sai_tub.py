@@ -40,6 +40,10 @@ class SaiTub(Contract):
     def rum(self):
         return self.functions.rum().call()
 
+    def rap(self, cdp_id):
+        return self.functions.rap(bytes32(cdp_id)).call()
+
+
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):
 #            name += '.eth'
