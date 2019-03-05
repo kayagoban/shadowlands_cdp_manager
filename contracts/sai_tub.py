@@ -34,7 +34,11 @@ class SaiTub(Contract):
     def ink(self, cdp_id):
         return self.functions.ink(bytes32(cdp_id)).call()
 
+    def fee(self):
+        return self.functions.fee().call()
 
+    def rum(self):
+        return self.functions.rum().call()
 
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):

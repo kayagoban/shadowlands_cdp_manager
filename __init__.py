@@ -3,8 +3,12 @@ from shadowlands.sl_dapp import SLDapp, SLFrame, ExitDapp
 #import random, string
 #from datetime import datetime, timedelta
 
+from decimal import Decimal
 from shadowlands.contract import ContractConfigError
 from shadowlands.tui.debug import debug
+from gql import gql, Client
+from gql.transport.requests import RequestsHTTPTransport
+import requests
 import pdb
 
 #from ens_manager.contracts.ens_resolver import EnsResolver
@@ -29,23 +33,26 @@ from cdp_manager.contracts.maker_otc import MakerOtc
 from cdp_manager.contracts.oasis_proxy import OasisProxy
 from cdp_manager.contracts.proxy_registry import ProxyRegistry
 
-from decimal import Decimal
 
 class Dapp(SLDapp):
 
-    RAY = 10 ** 27
+    RAY = Decimal(10 ** 27)
+    WAD = Decimal(10 ** 18)
 
     def collateral_peth_value(self, cup_id):
-        return self.tub.ink(cup_id)
+        return Decimal(self.tub.ink(cup_id))
+
+    def peth_price(self):
+        per = Decimal(self.tub.per())
+        return per / self.RAY
+ 
  
     def collateral_eth_value(self, cup_id):
-        per = self.tub.per()
-        peth_price = per / self.RAY
-        return peth_price * self.collateral_peth_value(cup_id)
+       return self.peth_price() * self.collateral_peth_value(cup_id)
         
     def liquidation_price(self, cup_id):
-        debt_value = self.tub.tab(cup_id) # not quite, but..
-        mat = self.tub.mat()
+        debt_value = Decimal(self.tub.tab(cup_id)) # not quite, but..
+        mat = Decimal(self.tub.mat())
         liquidation_ratio = mat / self.RAY 
         return round(Decimal( debt_value * liquidation_ratio / self.collateral_eth_value(cup_id)), 2)
 
@@ -55,21 +62,35 @@ class Dapp(SLDapp):
         return round(Decimal(penalty), 2)
 
     def debt_value(self, cup_id):
-        return self.tub.tab(cup_id)
+        return Decimal(self.tub.tab(cup_id))
+
+    def target_price(self):
+        return Decimal(self.vox.par())
 
     def collateralization_ratio(self, cup_id):
-        self.debt_value(cup_id)
+        tag = Decimal(self.tub.tag())
+        #usd_debt = tag * self.target_price()
+        #per = Decimal(self.tub.per())
+        #peth_price = per / self.RAY
+        coll_ratio = self.collateral_peth_value(cup_id) * (tag / self.RAY) / self.debt_value(cup_id) * Decimal(100)
+        return round(coll_ratio, 3)
 
-        tag = self.tub.tag()
 
-        target_price = self.vox.par()
-        usd_debt = tag * target_price
-        
-        per = self.tub.per()
-        peth_price = per / self.RAY
+    def peth_available_to_withdraw(self, cup_id):
+        tag = Decimal(self.tub.tag())
+        return self.collateral_peth_value(cup_id) / self.WAD - Decimal(150) / (tag/self.RAY) /  Decimal(100) * self.debt_value(cup_id) / self.WAD 
 
-        coll_ratio = self.collateral_peth_value(15252) * (self.tub.tag() / self.RAY) / self.debt_value(cup_id) * 100
-        return round(Decimal(coll_ratio), 2)
+    def eth_available_to_withdraw(self, cup_id):
+        return self.peth_price() * self.peth_available_to_withdraw(cup_id)
+
+    def stability_fee(self):
+        fee = self.tub.fee()
+        seconds_per_year = 60 * 60 * 24 * 365
+        compounded_fee = (pow(fee / self.RAY, seconds_per_year) - 1) * 100
+        return round(Decimal(compounded_fee), 2)
+
+    def global_dai_available(self):
+        return Decimal(self.tub.rum()) / self.WAD
 
 # async getCollateralizationRatio(cdpId) {
 #    const usdDebt = await this.getDebtValue(cdpId, USD);
@@ -88,11 +109,20 @@ class Dapp(SLDapp):
 
 
     def report(self):
-        cup_id = 15252
+        cup_id = 15341
         print("liquidation price: $", self.liquidation_price(cup_id))
         print("ether price: $", self.price_poller.eth_price)
         print("liquidation penalty: ", self.liquidation_penalty(), "%")
         print("collateralization ratio: ", self.collateralization_ratio(cup_id), "%")
+        print("collateral peth value: PETH", round(self.node.w3.fromWei(self.collateral_peth_value(cup_id) , 'ether'), 3))
+        print("collateral eth value: ETH", round(self.node.w3.fromWei(self.collateral_eth_value(cup_id), 'ether'), 3))
+        print("yearly stability fee: ", self.stability_fee(), "%")
+        print("eth value: $", round( Decimal(self.price_poller.eth_price) * self.node.w3.fromWei(self.collateral_eth_value(cup_id), 'ether'), 2) )
+        print("global dai available: DAI ", self.global_dai_available())
+        print("max available to withdraw PETH ", round(self.peth_available_to_withdraw(cup_id), 3) )
+        print("max available to withdraw ETH ", round(self.eth_available_to_withdraw(cup_id), 3) )
+        print("max available to withdraw value $", round(self.eth_available_to_withdraw(cup_id) * Decimal(self.price_poller.eth_price), 2))
+
 
     def initialize(self):
         #self.name = None  # The full name given by the user
@@ -107,13 +137,69 @@ class Dapp(SLDapp):
         self.tub = SaiTub(self.node)
         self.vox = SaiVox(self.node)
 
+        debug(); pdb.set_trace()
+        self.report()
+
+        query = "query ($lad: String) {\n      allCups(condition: { lad: $lad }) {\n        nodes {\n          id\n        }\n      }\n    }"
+        variables = '{"lad":"0x0E3873CC74F363aA38C2D8F1a29F6D1480078D55"}'
+
+        #q = '{"query":"query ($lad: String) {\n      allCups(condition: { lad: $lad }) {\n        nodes {\n          id\n        }\n      }\n    }","variables":{"lad": "0x0E3873CC74F363aA38C2D8F1a29F6D1480078D55"}}'
+        gql_string = '''{
+  allCups(
+    condition: {lad: "0x0E3873CC74F363aA38C2D8F1a29F6D1480078D55"}
+  ){ 
+    totalCount
+    nodes {
+        id 
+    } 
+  }  
+}'''
+        gql_string2 = '{ allCups(){ totalCount } }'
+
+
+
+
+        #0x0E3873CC74F363aA38C2D8F1a29F6D1480078D55
+
+        #query_string = query_string.replace('%s', self.node.credstick.address)
+
+        #gql_string = gql(query)
+        url = 'http://sai-mainnet.makerfoundation.com/v1'
+
+        headers = {'Accept': 'application/json', 'Content-Type': 'application/json' }
+
+        debug(); pdb.set_trace()
+
+        #response = requests.post(url, headers=headers, data=gql_string)
+        response = requests.post(url, headers=headers, json={"query": gql_string2})
+        #response = requests.post(url, data=query)
+        #response = requests.post(url, data=query)
+
+        debug(); pdb.set_trace()
+
+        client = Client(transport=RequestsHTTPTransport(url='http://sai-mainnet.makerfoundation.com/v1'))
+ 
+
+
+        client.execute(query)
+ 
+
+        # from dai.js - get all cd ids for address
+        #const api = new QueryApi(this._web3Service().networkId());
+        #return api.getCdpIdsForOwner(address);
+        #`query ($lad: String) {
+        #allCups(condition: { lad: $lad }) {
+        #  nodes {
+        #    id
+        #  }
+        #}
+        # }`
+
         #cup = tub.cup(15252)
 
         #self.report()
 
-        debug(); pdb.set_trace()
-
-        #debug(); pdb.set_trace()
+       #debug(); pdb.set_trace()
 
         #self.price_poller.eth_price
 
