@@ -40,15 +40,22 @@ class CDPStatusFrame(SLFrame):
         debug(); pdb.set_trace()
 
     def initialize(self):
-        self.add_divider()
-        self.add_label_pair("Liquidation Price: ", str(round(self.dapp.liquidation_price(self.dapp.cup_id), 4)) + " USD", add_divider=False)
-        self.add_label_pair("Current Price: (ETH/USD)", str(round(self.dapp.ether_price(), 4)) + " USD", add_divider=False)
-        self.add_label_pair("Liquidation penalty: ", str(round(self.dapp.liquidation_penalty(), 4)) + " %", add_divider=False)
+        #self.add_divider()
+        
+        self.add_label_quad("Liq. Price:", str(round(self.dapp.liquidation_price(self.dapp.cup_id), 4)) + " USD",
+                            "Collat. Ratio:", str(round(self.dapp.collateralization_ratio(self.dapp.cup_id), 4)) + " %", add_divider=False)
+        self.add_label_quad("Current Price:", str(round(self.dapp.ether_price(), 4)) + " USD",
+                            "Minimum Ratio:", str(round(self.dapp.liquidation_ratio(), 4) * 100) + " %", add_divider=False)
+        self.add_label_quad("Liq. penalty:", str(round(self.dapp.liquidation_penalty(), 4)) + " %",
+                            "Stability Fee:", str(round(self.dapp.stability_fee(), 4)) + " %", add_divider=False)
+
+        #self.add_label_pair("Current Price: (ETH/USD)", str(round(self.dapp.ether_price(), 4)) + " USD", add_divider=False)
+        #self.add_label_pair("Liquidation penalty: ", str(round(self.dapp.liquidation_penalty(), 4)) + " %", add_divider=False)
         self.add_divider(draw_line=True)
-        self.add_label_pair("Collateralization Ratio: ", str(round(self.dapp.collateralization_ratio(self.dapp.cup_id), 4)) + " %", add_divider=False)
-        self.add_label_pair("Minimum Ratio:", str(round(self.dapp.liquidation_ratio(), 4) * 100) + " %", add_divider=False)
-        self.add_label_pair("Stability Fee:", str(round(self.dapp.stability_fee(), 4)) + " %", add_divider=False)
-        self.add_divider(draw_line=True)
+        #self.add_label_pair("Collateralization Ratio: ", str(round(self.dapp.collateralization_ratio(self.dapp.cup_id), 4)) + " %", add_divider=False)
+        #self.add_label_pair("Minimum Ratio:", str(round(self.dapp.liquidation_ratio(), 4) * 100) + " %", add_divider=False)
+        #self.add_label_pair("Stability Fee:", str(round(self.dapp.stability_fee(), 4)) + " %", add_divider=False)
+       # self.add_divider(draw_line=True)
         self.add_label("ETH Collateral")
         self.add_label_pair("Deposited:", str(round(self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " ETH", add_divider=False)
         self.add_label_pair("", str(round(self.dapp.collateral_peth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " PETH", add_divider=False)
@@ -58,9 +65,8 @@ class CDPStatusFrame(SLFrame):
         self.add_label_pair("Max avail to withdraw:", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id), 3)) + " ETH", add_divider=False)
         self.add_label_pair("", str(round(self.dapp.peth_available_to_withdraw(self.dapp.cup_id), 3)) + " PETH", add_divider=False)
         self.add_label_pair("", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id) * Decimal(self.dapp.pip.eth_price()) / self.dapp.WAD)) + " USD", add_divider=False)
-        self.add_button(self.close, "WITHDRAW", layout_distribution = [1, 1, 1, 1], layout_index=0, add_divider=False)
-        self.add_divider()
-        self.add_divider(draw_line=False)
+        self.add_button(self.close, "WITHDRAW", layout_distribution = [1, 1, 1, 1], layout_index=0, add_divider=True)
+        self.add_divider(draw_line=True)
         self.add_ok_cancel_buttons(self.drop)
 
 
@@ -84,7 +90,7 @@ class Dapp(SLDapp):
         self.pep = SaiPep(self.node)
 
 
-        self.add_frame(CDPStatusFrame, height=25, width=55, title="CDP {} info".format(self.cup_id))
+        self.add_frame(CDPStatusFrame, height=21, width=70, title="CDP {} info".format(self.cup_id))
 
     def getCdpIds():
         query = "query ($lad: String) {\n      allCups(condition: { lad: $lad }) {\n        nodes {\n          id\n        }\n      }\n    }"
