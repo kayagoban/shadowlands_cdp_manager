@@ -1,5 +1,6 @@
 from shadowlands.contract import Contract
 from hexbytes import HexBytes
+from decimal import Decimal
 
 from shadowlands.tui.debug import debug
 import pdb
@@ -7,6 +8,14 @@ import pdb
 # SAI_PIP: version: 1, address: addresses.PIP, abi: abis.dappHub.dsValue
 
 class SaiPip(Contract):
+
+    def read(self):
+        return self.functions.read().call()
+
+    def eth_price(self):
+        result = self.functions.read().call()
+        int_price = int.from_bytes(result, byteorder='big')
+        return Decimal(int_price)
 
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):

@@ -1,6 +1,6 @@
 from shadowlands.contract import Contract
 from hexbytes import HexBytes
-
+from decimal import Decimal
 from shadowlands.tui.debug import debug
 import pdb
 
@@ -8,6 +8,9 @@ import pdb
 
 class SaiPep(Contract):
 
+    def mkr_price(self):
+        result = self.functions.peek().call()[0]
+        return Decimal(int.from_bytes(result, byteorder='big'))
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):
 #            name += '.eth'
