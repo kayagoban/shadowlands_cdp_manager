@@ -43,6 +43,10 @@ class SaiTub(Contract):
     def rap(self, cdp_id):
         return self.functions.rap(bytes32(cdp_id)).call()
 
+    def pie(self):
+        return self.functions.pie().call()
+
+
 
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):
