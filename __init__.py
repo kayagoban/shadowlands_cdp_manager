@@ -3,12 +3,14 @@ from shadowlands.sl_dapp import SLDapp, SLFrame, ExitDapp
 #import random, string
 #from datetime import datetime, timedelta
 
+from shadowlands.credstick import DeriveCredstickAddressError
 from decimal import Decimal
 from shadowlands.contract import ContractConfigError
 from shadowlands.tui.debug import debug
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
 import requests
+import threading
 import pdb
 
 #from ens_manager.contracts.ens_resolver import EnsResolver
@@ -42,8 +44,8 @@ class CDPStatusFrame(SLFrame):
     def initialize(self):
         #self.add_divider()
         
-        self.add_label_quad("Liq. Price:", str(round(self.dapp.liquidation_price(self.dapp.cup_id), 4)) + " USD",
-                            "Collat. Ratio:", str(round(self.dapp.collateralization_ratio(self.dapp.cup_id), 4)) + " %", add_divider=False)
+        self.add_label_quad("Liq. Price:", str(round(self.dapp.cdp_liquidation_price(self.dapp.cup_id), 4)) + " USD",
+                            "Collat. Ratio:", str(round(self.dapp.cdp_collateralization_ratio(self.dapp.cup_id), 4)) + " %", add_divider=False)
         self.add_label_quad("Current Price:", str(round(self.dapp.ether_price(), 4)) + " USD",
                             "Minimum Ratio:", str(round(self.dapp.liquidation_ratio(), 4) * 100) + " %", add_divider=False)
         self.add_label_quad("Liq. penalty:", str(round(self.dapp.liquidation_penalty(), 4)) + " %",
@@ -54,13 +56,11 @@ class CDPStatusFrame(SLFrame):
         self.add_label("ETH Collateral")
         self.add_label_quad("Deposited:", str(round(self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " ETH",
                             "Max available:", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id), 3)) + " ETH", add_divider=False)
-
         self.add_label_quad("", str(round(self.dapp.collateral_peth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " PETH",
-                       "", str(round(self.dapp.peth_available_to_withdraw(self.dapp.cup_id), 3)) + " PETH", add_divider=False)
-
+                            "", str(round(self.dapp.peth_available_to_withdraw(self.dapp.cup_id), 3)) + " PETH", add_divider=False)
         self.add_label_quad("", str(round( Decimal(self.dapp.pip.eth_price() / self.dapp.WAD) * self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " USD",
                             "", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id) * Decimal(self.dapp.pip.eth_price()) / self.dapp.WAD, 4)) + " USD", add_divider=True)
-        self.add_ok_cancel_buttons(self.close, self.close, "DEPOSIT", cancel_text="WITHDRAW", cancel_index=2)
+        self.add_ok_cancel_buttons(self.dapp.lock, self.close, "DEPOSIT", cancel_text="WITHDRAW", cancel_index=2)
         self.add_divider(draw_line=True)
 
         self.add_label("DAI Position")
@@ -71,12 +71,11 @@ class CDPStatusFrame(SLFrame):
         self.add_divider(draw_line=False)
         self.add_divider(draw_line=False)
 
-        self.add_button(self.drop, "Quit", layout_distribution=[1, 1, 1, 1], layout_index=3)
+        self.add_button(self.close, "Quit", layout_distribution=[1, 1, 1, 1], layout_index=3)
 
 
 class Dapp(SLDapp):
 
-    cup_id = 15341
     RAY = Decimal(10 ** 27)
     WAD = Decimal(10 ** 18)
 
@@ -93,73 +92,31 @@ class Dapp(SLDapp):
         self.pip = SaiPip(self.node)
         self.pep = SaiPep(self.node)
 
+        self.erc2_contract = { 'DAI': self.dai }
 
-        self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+        #debug(); pdb.set_trace()
+        self.show_wait_frame()
 
-    def getCdpIds():
-        query = "query ($lad: String) {\n      allCups(condition: { lad: $lad }) {\n        nodes {\n          id\n        }\n      }\n    }"
-        variables = '{"lad":"0x0E3873CC74F363aA38C2D8F1a29F6D1480078D55"}'
-
-        # q = '{"query":"query ($lad: String) {\n      allCups(condition: { lad: $lad }) {\n        nodes {\n          id\n        }\n      }\n    }","variables":{"lad": "0x0E3873CC74F363aA38C2D8F1a29F6D1480078D55"}}'
-        gql_string = '''{
-  allCups(
-    condition: {lad: "0x0E3873CC74F363aA38C2D8F1a29F6D1480078D55"}
-  ){ 
-    totalCount
-    nodes {
-        id 
-    } 
-  }  
-}'''
-        gql_string2 = '{ allCups(){ totalCount } }'
+        threading.Thread(target=self._cdp_id_worker).start()
 
 
-        #0x0E3873CC74F363aA38C2D8F1a29F6D1480078D55
-
-        #query_string = query_string.replace('%s', self.node.credstick.address)
-
-        #gql_string = gql(query)
-        url = 'http://sai-mainnet.makerfoundation.com/v1'
-
-        headers = {'Accept': 'application/json', 'Content-Type': 'application/json' }
-
-        debug(); pdb.set_trace()
-
-        #response = requests.post(url, headers=headers, data=gql_string)
-        response = requests.post(url, headers=headers, json={"query": gql_string2})
-        #response = requests.post(url, data=query)
-        #response = requests.post(url, data=query)
-
-        debug(); pdb.set_trace()
-
-        client = Client(transport=RequestsHTTPTransport(url='http://sai-mainnet.makerfoundation.com/v1'))
- 
+    def _cdp_id_worker(self):
+        try:
+            self.cup_id = self.getCdpId(self.node.credstick.address)  
+            self.hide_wait_frame()
+            self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+        except IndexError:
+            debug(); pdb.set_trace()
+        except DeriveCredstickAddressError:
+            self.hide_wait_frame()
+            self.add_message_dialog("Error occured obtaining the CDP ID")
 
 
-        client.execute(query)
- 
-
-        # from dai.js - get all cd ids for address
-        #const api = new QueryApi(this._web3Service().networkId());
-        #return api.getCdpIdsForOwner(address);
-        #`query ($lad: String) {
-        #allCups(condition: { lad: $lad }) {
-        #  nodes {
-        #    id
-        #  }
-        #}
-        # }`
-
-        #cup = tub.cup(15252)
-
-        #self.report()
-
-       #debug(); pdb.set_trace()
-
-        #self.price_poller.eth_price
-
-
-
+    def getCdpId(self, address):
+        address = address
+        url = "https://mkr.tools/api/v1/lad/{}".format(address)
+        response = requests.get(url).json()
+        return response[0]['id']
 
     def peth_price(self):
         per = Decimal(self.tub.per())
@@ -172,9 +129,11 @@ class Dapp(SLDapp):
         mat = Decimal(self.tub.mat())
         return  mat / self.RAY 
         
-    def liquidation_price(self, cup_id):
-        debt_value = Decimal(self.tub.tab(cup_id)) # not quite, but..
-        return debt_value * self.liquidation_ratio() / self.collateral_eth_value(cup_id)
+    def cdp_liquidation_price(self, cup_id):
+        return self.liquidation_price(Decimal(self.tub.tab(cup_id)), self.collateral_eth_value(cup_id))
+
+    def liquidation_price(self, debt_value, collateral_eth_value):
+        return debt_value * self.liquidation_ratio() / collateral_eth_value
 
     def collateral_peth_value(self, cup_id):
         return Decimal(self.tub.ink(cup_id))
@@ -197,9 +156,11 @@ class Dapp(SLDapp):
     def target_price(self):
         return Decimal(self.vox.par())
 
-    def collateralization_ratio(self, cup_id):
-        tag = Decimal(self.tub.tag())
-        coll_ratio = self.collateral_peth_value(cup_id) * (tag / self.RAY) / self.debt_value(cup_id) * Decimal(100)
+    def cdp_collateralization_ratio(self, cup_id):
+        return self.collateralization_ratio(self.collateral_peth_value(cup_id), self.debt_value(cup_id))
+
+    def collateralization_ratio(self, cdp_collateral_peth_value, debt_value):
+        coll_ratio = cdp_collateral_peth_value * self.tag() / debt_value * Decimal(100)
         return round(coll_ratio, 3)
 
     def system_collateralization_ratio(self):
@@ -233,11 +194,108 @@ class Dapp(SLDapp):
     def ether_price(self):
         return self.pip.eth_price() / self.WAD
 
+
+    # lock Eth estimate methods
+    def projected_liquidation_price(self):
+        pass
+
+    def projected_collateralization_ratio(self):
+        pass
+
+
+    # lock Eth methods
+    def require_allowance(self, symbol, receiver_address):
+        erc_contract = self.erc2_contract[symbol]
+        erc_contract.allowance(self.node.credstick.address, receiver_address)
+        erc_contract.approveUnlimited(receiver_address)
+
+    def lock_peth(self, cpd_id, amount):
+        self.require_allowance('PETH', self.tub._contract.address)
+        self.tub.lock(cdp_id, amount)
+
+    def lock_weth(self, cdp_id, amount):
+        #self.converter.weth2peth(amount)
+        return self.lock_peth(cdp_id, amount)
+
+    def lock_eth(self, cdp_id, amount):
+        #self.converter.eth2weth(amount)
+        self.lock_weth(cdp_id, amount)
+
+    def lock(self):
+        debug(); pdb.set_trace()
+        self.lock_eth(self.cup_id, 0.05)
+
+
+    '''
+    async requireAllowance(
+    tokenSymbol,
+    receiverAddress,
+    { estimate = maxAllowance, promise }
+  ) {
+    const token = this.get('token').getToken(tokenSymbol);
+    const ownerAddress = this.get('token')
+      .get('web3')
+      .currentAddress();
+    const allowance = await token.allowance(ownerAddress, receiverAddress);
+
+    if (allowance.lt(maxAllowance.div(2)) && !this._shouldMinimizeAllowance) {
+      const tx = await token.approveUnlimited(receiverAddress, { promise });
+      this.get('event').emit('allowance/APPROVE', {
+        transaction: tx
+      });
+      return tx;
+    }
+
+    if (allowance.lt(estimate) && this._shouldMinimizeAllowance) {
+      const tx = await token.approve(receiverAddress, estimate, { promise });
+      this.get('event').emit('allowance/APPROVE', {
+        transaction: tx
+      });
+    }
+    }
+    
+    @tracksTransactions
+      async lockPeth(cdpId, amount, { unit = PETH, promise }) {
+        const hexCdpId = numberToBytes32(cdpId);
+        const value = getCurrency(amount, unit).toEthersBigNumber('wei');
+        await this.get('allowance').requireAllowance(
+          PETH,
+          this._tubContract().address,
+          { promise }
+        );
+        return this._tubContract().lock(hexCdpId, value, {
+          promise
+        });
+      }
+
+      async lockWeth(cdpId, amount, { unit = WETH, promise }) {
+        const wethPerPeth = await this.get('price').getWethToPethRatio();
+        const weth = getCurrency(amount, unit);
+        await this._conversionService().convertWethToPeth(weth, {
+          promise
+        });
+
+        return this.lockPeth(cdpId, weth.div(wethPerPeth), { promise });
+      }
+
+      async lockEth(cdpId, amount, { unit = ETH, promise }) {
+        const convert = this._conversionService().convertEthToWeth(amount, {
+          unit,
+          promise
+        });
+        await this._txMgr().confirm(convert);
+        return this.lockWeth(cdpId, amount, { promise });
+      }
+
+      
+    '''
+
+
     def report(self):
-        print("liquidation price: $", round(self.liquidation_price(cup_id), 3))
+        print("liquidation price: $", round(self.cdp_liquidation_price(cup_id), 3))
         print("ether price: $", self.ether_price())
         print("liquidation penalty: ", self.liquidation_penalty(), "%")
-        print("collateralization ratio: ", self.collateralization_ratio(cup_id), "%")
+        print("collateralization ratio: ", self.cdp_collateralization_ratio(cup_id), "%")
         print("collateral peth value: PETH", round(self.node.w3.fromWei(self.collateral_peth_value(cup_id) , 'ether'), 3))
         print("collateral eth value: ETH", round(self.node.w3.fromWei(self.collateral_eth_value(cup_id), 'ether'), 3))
         print("yearly stability fee: ", self.stability_fee(), "%")

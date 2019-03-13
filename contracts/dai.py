@@ -9,6 +9,9 @@ class Dai(Contract):
     def totalSupply(self):
         return self.functions.totalSupply().call()
 
+    def allowance(self):
+        debug(); pdb.set_trace
+
 
     MAINNET='0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
     ABI='''

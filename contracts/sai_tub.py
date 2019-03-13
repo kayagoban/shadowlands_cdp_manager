@@ -46,6 +46,10 @@ class SaiTub(Contract):
     def pie(self):
         return self.functions.pie().call()
 
+    def address(self):
+        pdb.set_trace()
+        pass
+
 
 
 #    def resolve(self, name):
