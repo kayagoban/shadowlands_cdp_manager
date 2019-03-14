@@ -1,10 +1,10 @@
-from shadowlands.contract import Contract
+from shadowlands.contract.erc20 import Erc20
 from hexbytes import HexBytes
 
 from shadowlands.tui.debug import debug
 import pdb
 
-class Dai(Contract):
+class Dai(Erc20):
 
     def totalSupply(self):
         return self.functions.totalSupply().call()

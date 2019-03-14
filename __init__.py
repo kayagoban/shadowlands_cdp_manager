@@ -35,43 +35,9 @@ from cdp_manager.contracts.maker_otc import MakerOtc
 from cdp_manager.contracts.oasis_proxy import OasisProxy
 from cdp_manager.contracts.proxy_registry import ProxyRegistry
 from cdp_manager.contracts.dai import Dai
+from cdp_manager.contracts.peth import Peth
 
-class CDPStatusFrame(SLFrame):
-
-    def drop(self):
-        debug(); pdb.set_trace()
-
-    def initialize(self):
-        #self.add_divider()
-        
-        self.add_label_quad("Liq. Price:", str(round(self.dapp.cdp_liquidation_price(self.dapp.cup_id), 4)) + " USD",
-                            "Collat. Ratio:", str(round(self.dapp.cdp_collateralization_ratio(self.dapp.cup_id), 4)) + " %", add_divider=False)
-        self.add_label_quad("Current Price:", str(round(self.dapp.ether_price(), 4)) + " USD",
-                            "Minimum Ratio:", str(round(self.dapp.liquidation_ratio(), 4) * 100) + " %", add_divider=False)
-        self.add_label_quad("Liq. penalty:", str(round(self.dapp.liquidation_penalty(), 4)) + " %",
-                            "Stability Fee:", str(round(self.dapp.stability_fee(), 4)) + " %", add_divider=False)
-
-        self.add_divider(draw_line=True)
-
-        self.add_label("ETH Collateral")
-        self.add_label_quad("Deposited:", str(round(self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " ETH",
-                            "Max available:", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id), 3)) + " ETH", add_divider=False)
-        self.add_label_quad("", str(round(self.dapp.collateral_peth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " PETH",
-                            "", str(round(self.dapp.peth_available_to_withdraw(self.dapp.cup_id), 3)) + " PETH", add_divider=False)
-        self.add_label_quad("", str(round( Decimal(self.dapp.pip.eth_price() / self.dapp.WAD) * self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " USD",
-                            "", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id) * Decimal(self.dapp.pip.eth_price()) / self.dapp.WAD, 4)) + " USD", add_divider=True)
-        self.add_ok_cancel_buttons(self.dapp.lock, self.close, "DEPOSIT", cancel_text="WITHDRAW", cancel_index=2)
-        self.add_divider(draw_line=True)
-
-        self.add_label("DAI Position")
-        self.add_label_quad("Generated:", str(round(self.dapp.tub.tab(self.dapp.cup_id) / self.dapp.WAD, 2)) +  " DAI",
-                            "Max available:", str(round(self.dapp.dai_available_to_generate(self.dapp.cup_id), 3)) + " DAI", add_divider=False)
-        self.add_divider(draw_line=False)
-        self.add_ok_cancel_buttons(self.close, self.close, "PAY BACK", cancel_text="GENERATE", cancel_index=2)
-        self.add_divider(draw_line=False)
-        self.add_divider(draw_line=False)
-
-        self.add_button(self.close, "Quit", layout_distribution=[1, 1, 1, 1], layout_index=3)
+from cdp_manager.cdp_status_frame import CDPStatusFrame
 
 
 class Dapp(SLDapp):
@@ -91,8 +57,9 @@ class Dapp(SLDapp):
         self.dai = Dai(self.node)
         self.pip = SaiPip(self.node)
         self.pep = SaiPep(self.node)
+        self.peth = Peth(self.node) 
 
-        self.erc2_contract = { 'DAI': self.dai }
+        self.erc2_contract = { 'DAI': self.dai, 'PETH': self.peth }
 
         #debug(); pdb.set_trace()
         self.show_wait_frame()
@@ -174,15 +141,13 @@ class Dapp(SLDapp):
         return scr * 10 ** 18 * 100
 
     def peth_available_to_withdraw(self, cup_id):
-        tag = Decimal(self.tub.tag())
-        return self.collateral_peth_value(cup_id) / self.WAD - Decimal(150) / (tag/self.RAY) /  Decimal(100) * self.debt_value(cup_id) / self.WAD 
+        return self.collateral_peth_value(cup_id) / self.WAD - Decimal(150) / self.tag() /  Decimal(100) * self.debt_value(cup_id) / self.WAD 
 
     def eth_available_to_withdraw(self, cup_id):
         return self.peth_price() * self.peth_available_to_withdraw(cup_id)
 
     def dai_available_to_generate(self, cup_id):
-        tag = Decimal(self.tub.tag())
-        debt_to_reach_150 =  ( Decimal(1) / (Decimal(1.50) / ( self.collateral_peth_value(cup_id) * (tag / self.RAY) )  ) ) / self.WAD
+        debt_to_reach_150 =  ( Decimal(1) / (Decimal(1.50) / ( self.collateral_peth_value(cup_id) * self.tag() )  ) ) / self.WAD
         return debt_to_reach_150 - (self.debt_value(cup_id) / self.WAD)
 
     def stability_fee(self):
@@ -195,13 +160,16 @@ class Dapp(SLDapp):
         return self.pip.eth_price() / self.WAD
 
 
+
+
     # lock Eth estimate methods
-    def projected_liquidation_price(self):
-        pass
+    def projected_liquidation_price(self, cup_id, eth_to_deposit):
+        projected_eth_collateral = self.collateral_eth_value(cup_id) + eth_to_deposit * self.WAD
+        return self.liquidation_price(self.debt_value(cup_id), projected_eth_collateral)
 
-    def projected_collateralization_ratio(self):
-        pass
-
+    def projected_collateralization_ratio(self, cup_id, eth_to_deposit):
+        projected_peth_value = self.collateral_peth_value(cup_id) + eth_to_deposit * self.WAD / self.peth_price()
+        return self.collateralization_ratio(projected_peth_value, self.debt_value(cup_id))
 
     # lock Eth methods
     def require_allowance(self, symbol, receiver_address):
