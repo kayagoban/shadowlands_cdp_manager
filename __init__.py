@@ -7,8 +7,6 @@ from shadowlands.credstick import DeriveCredstickAddressError
 from decimal import Decimal
 from shadowlands.contract import ContractConfigError
 from shadowlands.tui.debug import debug
-from gql import gql, Client
-from gql.transport.requests import RequestsHTTPTransport
 import requests
 import threading
 import pdb
@@ -69,7 +67,11 @@ class Dapp(SLDapp):
 
     def _cdp_id_worker(self):
         try:
-            self.cup_id = self.getCdpId(self.node.credstick.address)  
+
+            response = self.getCdpId(self.node.credstick.address)  
+            self.cup_id = response[0]['id']
+            self.lad = response[0]['lad']
+
             self.hide_wait_frame()
             self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
         except IndexError:
@@ -83,7 +85,8 @@ class Dapp(SLDapp):
         address = address
         url = "https://mkr.tools/api/v1/lad/{}".format(address)
         response = requests.get(url).json()
-        return response[0]['id']
+        return response
+        #debug(); pdb.set_trace()
 
     def peth_price(self):
         per = Decimal(self.tub.per())
@@ -161,7 +164,6 @@ class Dapp(SLDapp):
 
 
 
-
     # lock Eth estimate methods
     def projected_liquidation_price(self, cup_id, eth_to_deposit):
         projected_eth_collateral = self.collateral_eth_value(cup_id) + eth_to_deposit * self.WAD
@@ -171,14 +173,12 @@ class Dapp(SLDapp):
         projected_peth_value = self.collateral_peth_value(cup_id) + eth_to_deposit * self.WAD / self.peth_price()
         return self.collateralization_ratio(projected_peth_value, self.debt_value(cup_id))
 
+
+
     # lock Eth methods
-    def require_allowance(self, symbol, receiver_address):
-        erc_contract = self.erc2_contract[symbol]
-        erc_contract.allowance(self.node.credstick.address, receiver_address)
-        erc_contract.approveUnlimited(receiver_address)
 
     def lock_peth(self, cpd_id, amount):
-        self.require_allowance('PETH', self.tub._contract.address)
+        self.require_allowance('PETH', self.tub._contract.address, amount)
         self.tub.lock(cdp_id, amount)
 
     def lock_weth(self, cdp_id, amount):

@@ -1,7 +1,9 @@
 from shadowlands.sl_dapp import SLFrame
 from decimal import Decimal
 
+from shadowlands.tui.debug import debug
 from cdp_manager.lock_eth_frame import LockEthFrame
+import pdb
 
 
 class CDPStatusFrame(SLFrame):
@@ -10,6 +12,14 @@ class CDPStatusFrame(SLFrame):
         debug(); pdb.set_trace()
 
     def lock_eth_frame(self):
+        #require_allowance(self, symbol, receiver_address, amount):
+        #erc_contract.approve(receiver_address, amount * self.WAD)
+        #debug(); pdb.set_trace()
+        #self.dapp.lad
+        if self.dapp.peth.allowance(self.dapp.peth.address, self.dapp.tub.address) < Decimal(2 ** 128 - 1):
+            erc_contract.approveUnlimited(receiver_address)
+
+        #    pass
         self.dapp.add_frame(LockEthFrame, 20, 50, title="Deposit Collateral")
         self.close()
 
