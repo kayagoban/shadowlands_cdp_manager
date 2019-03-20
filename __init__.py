@@ -36,6 +36,7 @@ from cdp_manager.contracts.dai import Dai
 from cdp_manager.contracts.peth import Peth
 
 from cdp_manager.cdp_status_frame import CDPStatusFrame
+from cdp_manager.open_cdp_frame import OpenCDPFrame
 
 
 class Dapp(SLDapp):
@@ -62,18 +63,25 @@ class Dapp(SLDapp):
         #debug(); pdb.set_trace()
         self.show_wait_frame()
 
+        #self._cdp_id_worker()
         threading.Thread(target=self._cdp_id_worker).start()
 
+        #debug(); pdb.set_trace()
 
     def _cdp_id_worker(self):
         try:
 
             response = self.getCdpId(self.node.credstick.address)  
-            self.cup_id = response[0]['id']
-            self.lad = response[0]['lad']
 
             self.hide_wait_frame()
-            self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+
+            if len(response) == 0:
+                self.add_frame(OpenCDPFrame, 8, 56, title="Open New CDP")
+            else:
+                self.cup_id = response[0]['id']
+                self.lad = response[0]['lad']
+                self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+
         except IndexError:
             debug(); pdb.set_trace()
         except DeriveCredstickAddressError:
@@ -161,7 +169,6 @@ class Dapp(SLDapp):
 
     def ether_price(self):
         return self.pip.eth_price() / self.WAD
-
 
 
     # lock Eth estimate methods

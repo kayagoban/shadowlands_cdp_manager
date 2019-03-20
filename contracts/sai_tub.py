@@ -46,6 +46,10 @@ class SaiTub(Contract):
     def pie(self):
         return self.functions.pie().call()
 
+    # TXs
+    def open(self):
+        return self.functions.open()
+
 
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):
