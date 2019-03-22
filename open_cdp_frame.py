@@ -8,23 +8,23 @@ import pdb
 
 class OpenCDPFrame(SLFrame):
 
-    def drop(self):
-        debug(); pdb.set_trace()
-
     def initialize(self):
         self.add_divider()
         self.add_label("This address does not yet have a CDP registered")
         self.add_ok_cancel_buttons(self.open_cdp, ok_text="Open CDP")
 
     def open_cdp(self):
-        self.dapp.add_transaction_dialog(
-            tx_fn=lambda: self.dapp.tub.open(),
+        self.dapp.add_transaction_wait_dialog(
+            lambda: self.dapp.tub.open(),
+            "Waiting for the Tx to be mined...",
             title="Open CDP",
-            gas_limit=55000
+            gas_limit=53159,
+            exit_function=self.process_receipt
         )
 
-        
-
+    def process_receipt(self, rxo):
+        id_hex = rxo.logs[1]['data']
+        self.dapp.cup_id = id_hex.to_bytes(32, byteorder='big')
         
     # open new cdp
     
