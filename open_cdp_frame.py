@@ -6,6 +6,8 @@ from cdp_manager.lock_eth_frame import LockEthFrame
 import pdb
 
 
+#debug(); pdb.set_trace()
+
 class OpenCDPFrame(SLFrame):
 
     def initialize(self):
@@ -19,12 +21,13 @@ class OpenCDPFrame(SLFrame):
             "Waiting for the Tx to be mined...",
             title="Open CDP",
             gas_limit=53159,
-            exit_function=self.process_receipt
+            receipt_proc=self.process_receipt
         )
 
     def process_receipt(self, rxo):
         id_hex = rxo.logs[1]['data']
-        self.dapp.cup_id = id_hex.to_bytes(32, byteorder='big')
+        self.dapp.cup_id = int(id_hex, 16)
+
         
     # open new cdp
     

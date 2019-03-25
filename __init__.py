@@ -94,7 +94,6 @@ class Dapp(SLDapp):
         url = "https://mkr.tools/api/v1/lad/{}".format(address)
         response = requests.get(url).json()
         return response
-        #debug(); pdb.set_trace()
 
     def peth_price(self):
         per = Decimal(self.tub.per())
