@@ -50,6 +50,13 @@ class SaiTub(Contract):
     def open(self):
         return self.functions.open()
 
+    def lock(self, cdp_id, amount):
+        fn = self.functions.lock(
+            bytes32(cdp_id), 
+            self.toWei(amount, 'ether')
+        )
+
+        return fn
 
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):

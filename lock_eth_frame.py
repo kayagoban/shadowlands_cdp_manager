@@ -1,11 +1,18 @@
 from shadowlands.sl_dapp import SLFrame
 
+import decimal
 from decimal import Decimal, InvalidOperation
 
 import pdb
 from shadowlands.tui.debug import debug
 
 class LockEthFrame(SLFrame):
+
+    def proj_collat_ratio(self):
+        try:
+            return self.projected_collateralization_ratio 
+        except:
+            return "Unavailable"
 
     def initialize(self):
 
@@ -32,10 +39,16 @@ class LockEthFrame(SLFrame):
         self.close()
 
     def projected_liquidation_price(self):
-        return str(round(self.dapp.projected_liquidation_price(self.dapp.cup_id, self.deposit_eth_value()), 4))
+        try:
+            return str(round(self.dapp.projected_liquidation_price(self.dapp.cup_id, self.deposit_eth_value()), 4))
+        except (decimal.InvalidOperation):
+            return "Undefined"
 
     def projected_collateralization_ratio(self):
-        return str(round(self.dapp.projected_collateralization_ratio(self.dapp.cup_id, self.deposit_eth_value()), 4))
+        try:
+            return str(round(self.dapp.projected_collateralization_ratio(self.dapp.cup_id, self.deposit_eth_value()), 4))
+        except (decimal.DivisionByZero, decimal.InvalidOperation):
+            return "Undefined"
 
     def deposit_eth_value_string(self):
         return str(self.deposit_eth_value())

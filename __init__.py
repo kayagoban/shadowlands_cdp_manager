@@ -57,6 +57,8 @@ class Dapp(SLDapp):
         self.pip = SaiPip(self.node)
         self.pep = SaiPep(self.node)
         self.peth = Peth(self.node) 
+        self.proxy_registry = ProxyRegistry(self.node)
+        self.sai_proxy = SaiProxy(self.node)
 
         self.erc2_contract = { 'DAI': self.dai, 'PETH': self.peth }
 
@@ -76,7 +78,7 @@ class Dapp(SLDapp):
             self.hide_wait_frame()
 
             if len(response) == 0:
-                self.add_frame(OpenCDPFrame, 8, 56, title="Open New CDP")
+                self.add_frame(OpenCDPFrame, 20, 56, title="Open New CDP")
             else:
                 self.cup_id = response[0]['id']
                 self.lad = response[0]['lad']
@@ -183,9 +185,10 @@ class Dapp(SLDapp):
 
     # lock Eth methods
 
-    def lock_peth(self, cpd_id, amount):
-        self.require_allowance('PETH', self.tub._contract.address, amount)
-        self.tub.lock(cdp_id, amount)
+    def lock_peth(self, cdp_id, amount):
+        #self.require_allowance('PETH', self.tub._contract.address, amount)
+        self.add_transaction_dialog(self.tub.lock(cdp_id, amount), gas_limit=100000)
+        #self.tub.lock(cdp_id, amount)
 
     def lock_weth(self, cdp_id, amount):
         #self.converter.weth2peth(amount)
