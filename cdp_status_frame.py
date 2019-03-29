@@ -28,6 +28,15 @@ class CDPStatusFrame(SLFrame):
         self.dapp.add_frame(LockEthFrame, 20, 50, title="Deposit Collateral")
         self.close()
 
+    def close_cdp_frame(self):
+        pass
+
+    def move_cdp_frame(self):
+        pass
+
+    def refresh_info(self):
+        pass
+
     def initialize(self):
         #self.add_divider()
         
@@ -50,6 +59,12 @@ class CDPStatusFrame(SLFrame):
             dai_max_avail = str(round(self.dapp.dai_available_to_generate(self.dapp.cup_id), 3)) + " DAI"
         except (decimal.DivisionByZero):
             dai_max_avail = "Undefined" 
+
+
+        
+        self.add_ok_cancel_buttons(self.move_cdp_frame, cancel_fn=self.close_cdp_frame, ok_text="Move CDP", cancel_text="Close CDP", ok_index=2, cancel_index=3)
+
+        self.add_divider(draw_line=True)
 
         self.add_label_quad("Liq. Price:", 
                             liq_price,
@@ -81,8 +96,9 @@ class CDPStatusFrame(SLFrame):
         self.add_label_quad("", str(round(self.dapp.collateral_peth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " PETH",
                             "", str(round(self.dapp.peth_available_to_withdraw(self.dapp.cup_id), 3)) + " PETH", add_divider=False)
         self.add_label_quad("", str(round( Decimal(self.dapp.pip.eth_price() / self.dapp.WAD) * self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " USD",
-                            "", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id) * Decimal(self.dapp.pip.eth_price()) / self.dapp.WAD, 4)) + " USD", add_divider=True)
+                            "", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id) * Decimal(self.dapp.pip.eth_price()) / self.dapp.WAD, 4)) + " USD", add_divider=False)
         self.add_ok_cancel_buttons(self.lock_eth_frame, self.close, "DEPOSIT", cancel_text="WITHDRAW", cancel_index=2)
+        
         self.add_divider(draw_line=True)
 
         self.add_label("DAI Position")
@@ -90,9 +106,9 @@ class CDPStatusFrame(SLFrame):
                             "Max available:", dai_max_avail, add_divider=False)
         self.add_divider(draw_line=False)
         self.add_ok_cancel_buttons(self.close, self.close, "PAY BACK", cancel_text="GENERATE", cancel_index=2)
-        self.add_divider(draw_line=False)
-        self.add_divider(draw_line=False)
+        self.add_divider(draw_line=True)
+        #self.add_divider(draw_line=False)
 
-        self.add_button(self.close, "Quit", layout_distribution=[1, 1, 1, 1], layout_index=3)
+        self.add_ok_cancel_buttons(self.refresh_info, ok_text="Refresh", cancel_text="Quit", ok_index=2, cancel_index=3)
 
 
