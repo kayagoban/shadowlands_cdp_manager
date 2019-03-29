@@ -5,6 +5,8 @@ from decimal import Decimal
 
 from shadowlands.tui.debug import debug
 from cdp_manager.lock_eth_frame import LockEthFrame
+from cdp_manager.close_cdp_frame import CloseCDPFrame
+
 import pdb
 
 
@@ -29,7 +31,8 @@ class CDPStatusFrame(SLFrame):
         self.close()
 
     def close_cdp_frame(self):
-        pass
+        self.dapp.add_frame(CloseCDPFrame, 20, 50, title="Close CDP")
+        self.close()
 
     def move_cdp_frame(self):
         pass
@@ -98,6 +101,8 @@ class CDPStatusFrame(SLFrame):
         self.add_label_quad("", str(round( Decimal(self.dapp.pip.eth_price() / self.dapp.WAD) * self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " USD",
                             "", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id) * Decimal(self.dapp.pip.eth_price()) / self.dapp.WAD, 4)) + " USD", add_divider=False)
         self.add_ok_cancel_buttons(self.lock_eth_frame, self.close, "DEPOSIT", cancel_text="WITHDRAW", cancel_index=2)
+        #self.add_button_row([
+        #    ("DEPOSIT"
         
         self.add_divider(draw_line=True)
 
