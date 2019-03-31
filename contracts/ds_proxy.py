@@ -3,6 +3,7 @@ from hexbytes import HexBytes
 
 from shadowlands.tui.debug import debug
 import pdb
+from cdp_manager.pymaker.calldata import Calldata
 
 # [contracts.SAI_PIT]: [
 #      { version: 1, address: addresses.PIT, abi: abis.daiV1.pit }
@@ -25,6 +26,10 @@ class DsProxy(Contract):
 #
 #        fn = self._contract.functions.setAddr(_namehash, HexBytes(address_target))
 #        return fn
+
+    def close(self):
+        debug(); pdb.set_trace()
+        return
 
 
     def lock(self):

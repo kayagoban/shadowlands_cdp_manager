@@ -84,7 +84,6 @@ class Dapp(SLDapp):
                 self.lad = response[0]['lad']
                 self.ds_proxy = DsProxy(self.node, address=self.lad)
 
-                debug(); pdb.set_trace()
                 self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
 
         except IndexError:
