@@ -35,7 +35,36 @@ class LockEthFrame(SLFrame):
             self.dapp.add_message_dialog("0 ETH is not a valid choice")
             return
 
-        self.dapp.lock_eth(self.dapp.cup_id, self.deposit_eth_value())
+        #debug(); pdb.set_trace()
+
+        
+        self.dapp.add_transaction_dialog(
+            self.dapp.ds_proxy.lock(
+                self.dapp.sai_proxy.address, 
+                self.dapp.tub.address,
+                self.dapp.cup_id, 
+            ),
+            tx_value=self.deposit_eth_value(),
+            title="Lock Collateral",
+            gas_limit=230000,
+        )
+
+        self.close()
+        return
+ 
+
+        #self.dapp.add_transaction_dialog(
+        #    self.dapp.ds_proxy.lock(
+        #        self.dapp.tub.address, 
+        #        self.dapp.cup_id, 
+        #        self.deposit_eth_value()
+        #    ),
+        #    tx_value=self.deposit_eth_value(),
+        #    title="Lock Collateral",
+        #    gas_limit=230000,
+        #)
+ 
+        #self.dapp.lock_eth(self.dapp.cup_id, self.deposit_eth_value())
         self.close()
 
     def projected_liquidation_price(self):

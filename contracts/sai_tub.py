@@ -8,16 +8,13 @@ import pdb
 #      { version: 1, address: addresses.PIT, abi: abis.daiV1.pit }
 # ],
 
-def bytes32(an_int):
-    return (an_int).to_bytes(32, byteorder='big')
-
 class SaiTub(Contract):
 
     def cup(self, cdp_id):
-        return self.functions.cups(bytes32(cdp_id)).call()
+        return self.functions.cups(self.bytes32(cdp_id)).call()
 
     def tab(self, cdp_id):
-        return self.functions.tab(bytes32(cdp_id)).call()
+        return self.functions.tab(self.bytes32(cdp_id)).call()
 
     def mat(self):
         return self.functions.mat().call()
@@ -32,7 +29,7 @@ class SaiTub(Contract):
         return self.functions.axe().call()
 
     def ink(self, cdp_id):
-        return self.functions.ink(bytes32(cdp_id)).call()
+        return self.functions.ink(self.bytes32(cdp_id)).call()
 
     def fee(self):
         return self.functions.fee().call()
@@ -41,7 +38,7 @@ class SaiTub(Contract):
         return self.functions.rum().call()
 
     def rap(self, cdp_id):
-        return self.functions.rap(bytes32(cdp_id)).call()
+        return self.functions.rap(self.bytes32(cdp_id)).call()
 
     def pie(self):
         return self.functions.pie().call()

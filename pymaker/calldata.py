@@ -1,5 +1,9 @@
 from cdp_manager.pymaker.util import synchronize, bytes_to_hexstring
 from web3.utils.contracts import get_function_info, encode_abi
+import re
+from web3 import Web3
+from shadowlands.tui.debug import debug
+import pdb
 
 class Calldata:
     """Represents Ethereum calldata.
@@ -32,6 +36,8 @@ class Calldata:
         fn_split = re.split('[(),]', fn_sign)
         fn_name = fn_split[0]
         fn_args_type = [{"type": type} for type in fn_split[1:] if type]
+
+        #debug(); pdb.set_trace()
 
         fn_abi = {"type": "function", "name": fn_name, "inputs": fn_args_type}
         fn_abi, fn_selector, fn_arguments = get_function_info("test", fn_abi=fn_abi, args=fn_args)
