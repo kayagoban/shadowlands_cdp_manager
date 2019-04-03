@@ -5,6 +5,9 @@ from decimal import Decimal
 
 from shadowlands.tui.debug import debug
 from cdp_manager.lock_eth_frame import LockEthFrame
+from cdp_manager.payback_dai_frame import PaybackDaiFrame
+from cdp_manager.generate_dai_frame import GenerateDaiFrame
+from cdp_manager.free_eth_frame import FreeEthFrame
 from cdp_manager.close_cdp_frame import CloseCDPFrame
 
 import pdb
@@ -14,6 +17,19 @@ class CDPStatusFrame(SLFrame):
 
     def drop(self):
         debug(); pdb.set_trace()
+
+    def payback_dai_frame(self):
+        self.dapp.add_frame(PaybackDaiFrame, 20, 50, title="Free Collateral")
+        self.close()
+
+    def generate_dai_frame(self):
+        self.dapp.add_frame(GenerateDaiFrame, 20, 50, title="Free Collateral")
+        self.close()
+
+    def free_eth_frame(self):
+        self.dapp.add_frame(FreeEthFrame, 20, 50, title="Free Collateral")
+        self.close()
+
 
     def lock_eth_frame(self):
         #require_allowance(self, symbol, receiver_address, amount):
@@ -31,14 +47,22 @@ class CDPStatusFrame(SLFrame):
         self.close()
 
     def close_cdp_frame(self):
-        self.dapp.ds_proxy.close()
-
-        #debug(); pdb.set_trace()
-        #self.dapp.add_frame(CloseCDPFrame, 20, 50, title="Close CDP")
-        #self.close()
+        self.dapp.add_frame(CloseCDPFrame, 20, 50, title="Close CDP")
+        self.close()
 
     def move_cdp_frame(self):
         pass
+
+    def shut_choice(self):
+        self.dapp.add_transaction_dialog(
+            self.dapp.ds_proxy.shut(
+                self.dapp.sai_proxy.address, 
+                self.dapp.tub.address,
+                self.dapp.cup_id
+            ),
+            title="Close CDP",
+            gas_limit=500000,
+        )
 
     def refresh_info(self):
         pass
@@ -103,7 +127,7 @@ class CDPStatusFrame(SLFrame):
                             "", str(round(self.dapp.peth_available_to_withdraw(self.dapp.cup_id), 3)) + " PETH", add_divider=False)
         self.add_label_quad("", str(round( Decimal(self.dapp.pip.eth_price() / self.dapp.WAD) * self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " USD",
                             "", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id) * Decimal(self.dapp.pip.eth_price()) / self.dapp.WAD, 4)) + " USD", add_divider=False)
-        self.add_ok_cancel_buttons(self.lock_eth_frame, self.close, "DEPOSIT", cancel_text="WITHDRAW", cancel_index=2)
+        self.add_ok_cancel_buttons(self.lock_eth_frame, self.free_eth_frame, "DEPOSIT", cancel_text="WITHDRAW", cancel_index=2)
         #self.add_button_row([
         #    ("DEPOSIT"
         
@@ -113,7 +137,7 @@ class CDPStatusFrame(SLFrame):
         self.add_label_quad("Generated:", str(round(self.dapp.tub.tab(self.dapp.cup_id) / self.dapp.WAD, 2)) +  " DAI",
                             "Max available:", dai_max_avail, add_divider=False)
         self.add_divider(draw_line=False)
-        self.add_ok_cancel_buttons(self.close, self.close, "PAY BACK", cancel_text="GENERATE", cancel_index=2)
+        self.add_ok_cancel_buttons(self.payback_dai_frame, self.generate_dai_frame, "PAY BACK", cancel_text="GENERATE", cancel_index=2)
         self.add_divider(draw_line=True)
         #self.add_divider(draw_line=False)
 

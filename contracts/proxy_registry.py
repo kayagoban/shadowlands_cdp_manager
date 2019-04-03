@@ -10,6 +10,8 @@ import pdb
 
 class ProxyRegistry(Contract):
 
+    def proxies(self, address):
+        return self.functions.proxies(address).call()
 
 
 #    def resolve(self, name):

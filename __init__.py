@@ -7,9 +7,9 @@ from shadowlands.credstick import DeriveCredstickAddressError
 from decimal import Decimal
 from shadowlands.contract import ContractConfigError
 from shadowlands.tui.debug import debug
+import pdb
 import requests
 import threading
-import pdb
 
 #from ens_manager.contracts.ens_resolver import EnsResolver
 #from ens_manager.contracts.ens_auction import EnsAuction

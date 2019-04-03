@@ -56,13 +56,14 @@ class CloseCDPFrame(SLFrame):
         # check to see if we need to unlock
 
         # unlock if needed - and then back to this frame
-
         self.dapp.add_transaction_dialog(
-            self.dapp.tub.shut(
+            self.dapp.ds_proxy.shut(
+                self.dapp.sai_proxy.address, 
+                self.dapp.tub.address,
                 self.dapp.cup_id
             ),
             title="Close CDP",
-            gas_limit=968650,
+            gas_limit=500000,
         )
         self.close()
 

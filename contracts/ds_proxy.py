@@ -5,6 +5,7 @@ from eth_utils import decode_hex, to_checksum_address
 from shadowlands.tui.debug import debug
 import pdb
 from cdp_manager.pymaker.calldata import Calldata
+from decimal import Decimal
 
 # [contracts.SAI_PIT]: [
 #      { version: 1, address: addresses.PIT, abi: abis.daiV1.pit }
@@ -43,6 +44,72 @@ class DsProxy(Contract):
         return fn
 
  
+    def draw(self, proxy_addr, tub_addr, cup_id, amount):
+        calldata = Calldata.from_signature(
+	    "draw(address,bytes32,uint256)",
+	    [
+		tub_addr,
+		self.bytes32(cup_id),
+                self.toWei(amount, 'ether')
+            ]
+	)
+        payload = calldata.as_bytes()
+
+        fn = self.functions.execute(proxy_addr, payload)
+        return fn
+
+    def shut(self, proxy_addr, tub_addr, cup_id):
+        calldata = Calldata.from_signature(
+	    "shut(address,bytes32)",
+	    [
+		tub_addr,
+		self.bytes32(cup_id)
+            ]
+	)
+        payload = calldata.as_bytes()
+        fn = self.functions.execute(proxy_addr, payload)
+        return fn
+
+
+
+    def give(self, proxy_addr, tub_addr, cup_id, target_addr):
+        pass
+
+    def wipe(self, proxy_addr, tub_addr, cup_id, amount):
+        calldata = Calldata.from_signature(
+	    "wipe(address,bytes32,uint256)",
+	    [
+		tub_addr,
+		self.bytes32(cup_id),
+                self.toWei(amount, 'ether')
+            ]
+	)
+        payload = calldata.as_bytes()
+
+        #debug(); pdb.set_trace()
+        fn = self.functions.execute(proxy_addr, payload)
+        return fn
+
+
+	
+
+    def free(self, proxy_addr, tub_addr, cup_id, amount):
+
+        calldata = Calldata.from_signature(
+	    "free(address,bytes32,uint256)",
+	    [
+		tub_addr,
+		self.bytes32(cup_id),
+                self.toWei(amount, 'ether')
+            ]
+	)
+        payload = calldata.as_bytes()
+
+        fn = self.functions.execute(proxy_addr, payload)
+        return fn
+
+
+
 
     def lock(self, proxy_addr, tub_addr, cup_id):
         calldata = Calldata.from_signature(
@@ -54,15 +121,9 @@ class DsProxy(Contract):
 	)
         payload = calldata.as_bytes()
 
-        #debug(); pdb.set_trace()
-
-        #tub_addr = decode_hex(tub_addr.replace('0x',''))
-
         fn = self.functions.execute(proxy_addr, payload)
         return fn
 
-    #MAINNET="0x0185f70376821b70565c5f92F0f116534748E6ae"
-    #KOVAN=
     ABI='''
 [
    {
