@@ -8,11 +8,18 @@ import pdb
 #      { version: 1, address: addresses.PIT, abi: abis.daiV1.pit }
 # ],
 
+NULL_ADDRESS = '0x0000000000000000000000000000000000000000'
 class ProxyRegistry(Contract):
 
     def proxies(self, address):
-        return self.functions.proxies(address).call()
+        result = self.functions.proxies(address).call()
+        if result == NULL_ADDRESS:
+            return None
+        else:
+            return result
 
+    def build(self):
+        return self.functions.build()
 
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):

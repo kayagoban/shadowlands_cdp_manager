@@ -50,20 +50,9 @@ class Dapp(SLDapp):
         if self.node.network_name not in ["MainNet", "Kovan"]:
             self.add_message_dialog("This Dapp only functions on the Ethereum MainNet and Kovan")
             return
-        
-        self.tub = SaiTub(self.node)
-        self.vox = SaiVox(self.node)
-        self.dai = Dai(self.node)
-        self.pip = SaiPip(self.node)
-        self.pep = SaiPep(self.node)
-        self.peth = Peth(self.node) 
-        self.proxy_registry = ProxyRegistry(self.node)
-        self.sai_proxy = SaiProxy(self.node)
-
-        self.erc2_contract = { 'DAI': self.dai, 'PETH': self.peth }
-
+       
         #debug(); pdb.set_trace()
-        self.show_wait_frame()
+        self.show_wait_frame("Loading CDP app...")
 
         #self._cdp_id_worker()
         threading.Thread(target=self._cdp_id_worker).start()
@@ -72,8 +61,22 @@ class Dapp(SLDapp):
 
     def _cdp_id_worker(self):
         try:
+            self.tub = SaiTub(self.node)
+            self.vox = SaiVox(self.node)
+            self.dai = Dai(self.node)
+            self.pip = SaiPip(self.node)
+            self.pep = SaiPep(self.node)
+            self.peth = Peth(self.node) 
+            self.proxy_registry = ProxyRegistry(self.node)
+            self.sai_proxy = SaiProxy(self.node)
+            self.erc2_contract = { 'DAI': self.dai, 'PETH': self.peth }
 
-            response = self.getCdpId(self.node.credstick.address)  
+
+            try:
+                response = self.getCdpId(self.node.credstick.address)  
+            except (requests.exceptions.ConnectionError):
+                self.add_frame(CupIDPromptFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+                return
 
             self.hide_wait_frame()
 
@@ -82,9 +85,39 @@ class Dapp(SLDapp):
             else:
                 self.cup_id = response[0]['id']
                 self.lad = response[0]['lad']
-                self.ds_proxy = DsProxy(self.node, address=self.lad)
+                # If we directly own the CDP, need to migrate.
+                if self.lad == self.node.credstick.address:
+                    # If a proxy exists, give.
+                    ds_proxy = self.dapp.proxy_redistry.proxies(self.lad)
+                    if ds_proxy is not None:
+                        self.add_transaction_dialog(
+                            self.ds_proxy.give(
+                                self.sai_proxy.address, 
+                                self.tub.address, 
+                                self.cup_id, 
+                                target
+                            ),
+                            title="Set your proxy as CDP owner",
+                            gas_limit=55000
+                        )
+                        self.add_message_dialog("Migration step 2: give ownership to your proxy")
+                    else:
+                        self.add_transaction_dialog(
+                            self.proxy_registry.build(),
+                            title="Create CDP proxy",
+                            gas_limit=55000
+                        )
+                        self.add_message_dialog("Migration step 1: create proxy contract to own the CDP")
 
+                    self.add_message_dialog("This is an old style CDP setup that must be updated to work with the new CDP portal.")
+                    return
+
+                self.ds_proxy = DsProxy(self.node, address=self.lad)
                 self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+
+                ds_proxy_addr =  self.dapp.proxy_registry.proxies(self.recipient_addr_value())
+                if ds_proxy_addr is None:
+
 
         except IndexError:
             debug(); pdb.set_trace()

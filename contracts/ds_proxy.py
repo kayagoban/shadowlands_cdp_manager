@@ -72,8 +72,18 @@ class DsProxy(Contract):
 
 
 
-    def give(self, proxy_addr, tub_addr, cup_id, target_addr):
-        pass
+    def give(self, proxy_addr, tub_addr, cup_id, target):
+        calldata = Calldata.from_signature(
+	    "give(address,bytes32,address)",
+	    [
+		tub_addr,
+		self.bytes32(cup_id),
+                target 
+            ]
+	)
+        payload = calldata.as_bytes()
+        fn = self.functions.execute(proxy_addr, payload)
+        return fn
 
     def wipe(self, proxy_addr, tub_addr, cup_id, amount):
         calldata = Calldata.from_signature(
@@ -85,7 +95,6 @@ class DsProxy(Contract):
             ]
 	)
         payload = calldata.as_bytes()
-
         #debug(); pdb.set_trace()
         fn = self.functions.execute(proxy_addr, payload)
         return fn
