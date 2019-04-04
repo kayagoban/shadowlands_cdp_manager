@@ -55,75 +55,75 @@ class Dapp(SLDapp):
         self.show_wait_frame("Loading CDP app...")
 
         #self._cdp_id_worker()
-        threading.Thread(target=self._cdp_id_worker).start()
+        threading.Thread(target=self._open_cdp_worker).start()
 
         #debug(); pdb.set_trace()
 
-    def _cdp_id_worker(self):
+
+    def _open_cdp_worker(self):
+        self.tub = SaiTub(self.node)
+        self.vox = SaiVox(self.node)
+        self.dai = Dai(self.node)
+        self.pip = SaiPip(self.node)
+        self.pep = SaiPep(self.node)
+        self.peth = Peth(self.node) 
+        self.proxy_registry = ProxyRegistry(self.node)
+        self.sai_proxy = SaiProxy(self.node)
+        self.erc20_contract = { 'DAI': self.dai, 'PETH': self.peth }
+
         try:
-            self.tub = SaiTub(self.node)
-            self.vox = SaiVox(self.node)
-            self.dai = Dai(self.node)
-            self.pip = SaiPip(self.node)
-            self.pep = SaiPep(self.node)
-            self.peth = Peth(self.node) 
-            self.proxy_registry = ProxyRegistry(self.node)
-            self.sai_proxy = SaiProxy(self.node)
-            self.erc2_contract = { 'DAI': self.dai, 'PETH': self.peth }
+            response = self.getCdpId(self.node.credstick.address)  
+        except (requests.exceptions.ConnectionError):
+            self.add_frame(CupIDPromptFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+            return
 
+        self.hide_wait_frame()
 
-            try:
-                response = self.getCdpId(self.node.credstick.address)  
-            except (requests.exceptions.ConnectionError):
-                self.add_frame(CupIDPromptFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+        # No registered cup id according to web api.
+        # NOTE There *should* be a way to get cup ID onchain. 
+        if len(response) == 0:
+            self.add_frame(OpenCDPFrame, 20, 56, title="Open New CDP")
+        else:
+            self.cup_id = response[0]['id']
+            lad = response[0]['lad']
+            # If we directly own the CDP, need to migrate.
+            if lad == self.node.credstick.address:
+                self._migrate_cdp_at(lad)
                 return
 
-            self.hide_wait_frame()
+            self.ds_proxy = DsProxy(self.node, address=lad)
+            self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
 
-            if len(response) == 0:
-                self.add_frame(OpenCDPFrame, 20, 56, title="Open New CDP")
-            else:
-                self.cup_id = response[0]['id']
-                self.lad = response[0]['lad']
-                # If we directly own the CDP, need to migrate.
-                if self.lad == self.node.credstick.address:
-                    # If a proxy exists, give.
-                    ds_proxy = self.dapp.proxy_redistry.proxies(self.lad)
-                    if ds_proxy is not None:
-                        self.add_transaction_dialog(
-                            self.ds_proxy.give(
-                                self.sai_proxy.address, 
-                                self.tub.address, 
-                                self.cup_id, 
-                                target
-                            ),
-                            title="Set your proxy as CDP owner",
-                            gas_limit=55000
-                        )
-                        self.add_message_dialog("Migration step 2: give ownership to your proxy")
-                    else:
-                        self.add_transaction_dialog(
-                            self.proxy_registry.build(),
-                            title="Create CDP proxy",
-                            gas_limit=55000
-                        )
-                        self.add_message_dialog("Migration step 1: create proxy contract to own the CDP")
-
-                    self.add_message_dialog("This is an old style CDP setup that must be updated to work with the new CDP portal.")
-                    return
-
-                self.ds_proxy = DsProxy(self.node, address=self.lad)
-                self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
-
-                ds_proxy_addr =  self.dapp.proxy_registry.proxies(self.recipient_addr_value())
-                if ds_proxy_addr is None:
+            #ds_proxy_addr =  self.proxy_registry.proxies(self.recipient_addr_value())
+            #if ds_proxy_addr is None:
+                #    pass
 
 
-        except IndexError:
-            debug(); pdb.set_trace()
-        except DeriveCredstickAddressError:
-            self.hide_wait_frame()
-            self.add_message_dialog("Error occured obtaining the CDP ID")
+    def _migrate_cdp_at(self, lad):
+        # If a proxy exists, give.
+        ds_proxy = self.dapp.proxy_registry.proxies(lad)
+        if ds_proxy is not None:
+            self.add_transaction_dialog(
+                self.ds_proxy.give(
+                    self.sai_proxy.address, 
+                    self.tub.address, 
+                    self.cup_id, 
+                    target
+                ),
+                title="Set your proxy as CDP owner",
+                gas_limit=55000
+            )
+            self.add_message_dialog("Migration step 2: give ownership to your proxy")
+        else:
+            self.add_transaction_dialog(
+                self.proxy_registry.build(),
+                title="Create CDP proxy",
+                gas_limit=55000
+            )
+            self.add_message_dialog("Migration step 1: create proxy contract to own the CDP")
+
+        self.add_message_dialog("This is an old style CDP setup that must be updated to work with the new CDP portal.")
+
 
 
     def getCdpId(self, address):
@@ -135,14 +135,14 @@ class Dapp(SLDapp):
     def peth_price(self):
         per = Decimal(self.tub.per())
         return per / self.RAY
- 
+
     def collateral_eth_value(self, cup_id):
         return self.peth_price() * self.collateral_peth_value(cup_id)
 
     def liquidation_ratio(self):
         mat = Decimal(self.tub.mat())
         return  mat / self.RAY 
-        
+
     def cdp_liquidation_price(self, cup_id):
         return self.liquidation_price(Decimal(self.tub.tab(cup_id)), self.collateral_eth_value(cup_id))
 

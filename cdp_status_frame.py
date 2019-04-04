@@ -17,36 +17,20 @@ import pdb
 
 class CDPStatusFrame(SLFrame):
 
-    def drop(self):
-        debug(); pdb.set_trace()
-
     def payback_dai_frame(self):
-        self.dapp.add_frame(PaybackDaiFrame, 20, 50, title="Free Collateral")
+        self.dapp.add_frame(PaybackDaiFrame, 20, 50, title="Pay back DAI")
+
+    def close_cdp_frame(self):
+        self.dapp.add_frame(CloseCDPFrame, 20, 50, title="Close CDP")
 
     def generate_dai_frame(self):
-        self.dapp.add_frame(GenerateDaiFrame, 20, 50, title="Free Collateral")
+        self.dapp.add_frame(GenerateDaiFrame, 20, 50, title="Borrow DAI")
 
     def free_eth_frame(self):
         self.dapp.add_frame(FreeEthFrame, 20, 50, title="Free Collateral")
 
-
     def lock_eth_frame(self):
-        #require_allowance(self, symbol, receiver_address, amount):
-        #erc_contract.approve(receiver_address, amount * self.WAD)
-        #debug(); pdb.set_trace()
-        #self.dapp.lad
-
-
-        # approve unlimited.. ?
-        #if self.dapp.peth.allowance(self.dapp.peth.address, self.dapp.tub.address) < Decimal(2 ** 128 - 1):
-        #    erc_contract.approveUnlimited(receiver_address)
-
-
         self.dapp.add_frame(LockEthFrame, 20, 50, title="Deposit Collateral")
-
-    def close_cdp_frame(self):
-        self.dapp.add_frame(CloseCDPFrame, 20, 50, title="Close CDP")
-        self.close()
 
     def move_cdp_frame(self):
         self.dapp.add_frame(GiveCDPFrame, 20, 59, title="Transfer CDP to different address")
@@ -126,6 +110,6 @@ class CDPStatusFrame(SLFrame):
         self.add_divider(draw_line=True)
         #self.add_divider(draw_line=False)
 
-        self.add_ok_cancel_buttons(self.refresh_info, ok_text="Refresh", cancel_text="Quit", ok_index=2, cancel_index=3)
+        self.add_ok_cancel_buttons(self.refresh_info, ok_text="Refresh data", cancel_text="Quit", ok_index=1, cancel_index=3)
 
 
