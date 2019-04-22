@@ -53,7 +53,7 @@ class Dapp(SLDapp):
             return
        
         #debug(); pdb.set_trace()
-        self.show_wait_frame("Loading CDP app...")
+        self.show_wait_frame("Querying Maker's Web API for Cup ID...")
 
         #self._cdp_id_worker()
         threading.Thread(target=self._open_cdp_worker).start()
@@ -93,7 +93,7 @@ class Dapp(SLDapp):
                 return
 
             self.ds_proxy = DsProxy(self.node, address=lad)
-            self.add_frame(CDPStatusFrame, height=20, width=70, title="CDP {} info".format(self.cup_id))
+            self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
 
             #ds_proxy_addr =  self.proxy_registry.proxies(self.recipient_addr_value())
             #if ds_proxy_addr is None:

@@ -62,17 +62,6 @@ class CDPStatusFrame(SLFrame):
             dai_max_avail = "Undefined" 
 
 
-        self.add_button_row(
-            [
-                ("Move CDP", self.move_cdp_frame, 0),
-                ("Close CDP", self.close_cdp_frame, 1),
-                ("Back", self.close, 3) 
-            ],
-            [1, 1, 1, 1]
-        )
-        
-        self.add_divider(draw_line=True)
-
         self.add_label_quad("Liq. Price:", 
                             liq_price,
                             "Collat. Ratio:", 
@@ -104,7 +93,15 @@ class CDPStatusFrame(SLFrame):
                             "", str(round(self.dapp.peth_available_to_withdraw(self.dapp.cup_id), 3)) + " PETH", add_divider=False)
         self.add_label_quad("", str(round( Decimal(self.dapp.pip.eth_price() / self.dapp.WAD) * self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)) +  " USD",
                             "", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id) * Decimal(self.dapp.pip.eth_price()) / self.dapp.WAD, 4)) + " USD", add_divider=False)
-        self.add_ok_cancel_buttons(self.lock_eth_frame, self.free_eth_frame, "DEPOSIT", cancel_text="WITHDRAW", cancel_index=2)
+        self.add_button_row(
+            [
+                ("Deposit", self.lock_eth_frame, 0),
+                ("Withdraw", self.free_eth_frame, 2)
+            ],
+            layout=[1, 1, 1, 1]
+        )
+ 
+        self.add_divider()
         
         self.add_divider(draw_line=True)
 
@@ -114,9 +111,23 @@ class CDPStatusFrame(SLFrame):
         self.add_divider(draw_line=False)
         self.add_button_row(
             [
-                ("PAY BACK", self.payback_dai_frame, 0),
-                ("GENERATE", self.generate_dai_frame, 2)
+                ("Pay back", self.payback_dai_frame, 0),
+                ("Generate", self.generate_dai_frame, 2)
             ],
             layout=[1, 1, 1, 1]
         )
+        self.add_divider()
+        self.add_divider(draw_line=True)
+        #self.add_divider()
+        self.add_button_row(
+            [
+                ("Move CDP", self.move_cdp_frame, 0),
+                ("Close CDP", self.close_cdp_frame, 1),
+                ("Back", self.close, 3) 
+            ],
+            [1, 1, 1, 1]
+        )
+        
+
+
 
