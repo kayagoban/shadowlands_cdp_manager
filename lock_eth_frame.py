@@ -46,7 +46,7 @@ class LockEthFrame(SLFrame):
             ),
             tx_value=self.deposit_eth_value(),
             title="Lock Collateral",
-            gas_limit=230000,
+            gas_limit=300000,
         )
 
         self.close()
