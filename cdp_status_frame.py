@@ -62,9 +62,15 @@ class CDPStatusFrame(SLFrame):
             dai_max_avail = "Undefined" 
 
 
+        self.add_button_row(
+            [
+                ("Move CDP", self.move_cdp_frame, 0),
+                ("Close CDP", self.close_cdp_frame, 1),
+                ("Back", self.close, 3) 
+            ],
+            [1, 1, 1, 1]
+        )
         
-        self.add_ok_cancel_buttons(self.move_cdp_frame, cancel_fn=self.close_cdp_frame, ok_text="Move CDP", cancel_text="Close CDP", ok_index=2, cancel_index=3)
-
         self.add_divider(draw_line=True)
 
         self.add_label_quad("Liq. Price:", 
@@ -106,10 +112,11 @@ class CDPStatusFrame(SLFrame):
         self.add_label_quad("Generated:", str(round(self.dapp.tub.tab(self.dapp.cup_id) / self.dapp.WAD, 2)) +  " DAI",
                             "Max available:", dai_max_avail, add_divider=False)
         self.add_divider(draw_line=False)
-        self.add_ok_cancel_buttons(self.payback_dai_frame, self.generate_dai_frame, "PAY BACK", cancel_text="GENERATE", cancel_index=2)
-        self.add_divider(draw_line=True)
-        #self.add_divider(draw_line=False)
-
-        self.add_ok_cancel_buttons(self.refresh_info, ok_text="Refresh data", cancel_text="Quit", ok_index=1, cancel_index=3)
-
+        self.add_button_row(
+            [
+                ("PAY BACK", self.payback_dai_frame, 0),
+                ("GENERATE", self.generate_dai_frame, 2)
+            ],
+            layout=[1, 1, 1, 1]
+        )
 

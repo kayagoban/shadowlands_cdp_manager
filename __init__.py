@@ -37,6 +37,7 @@ from cdp_manager.contracts.peth import Peth
 
 from cdp_manager.cdp_status_frame import CDPStatusFrame
 from cdp_manager.open_cdp_frame import OpenCDPFrame
+from cdp_manager.cup_id_prompt_frame import CupIDPromptFrame
 
 
 class Dapp(SLDapp):
@@ -92,7 +93,7 @@ class Dapp(SLDapp):
                 return
 
             self.ds_proxy = DsProxy(self.node, address=lad)
-            self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+            self.add_frame(CDPStatusFrame, height=20, width=70, title="CDP {} info".format(self.cup_id))
 
             #ds_proxy_addr =  self.proxy_registry.proxies(self.recipient_addr_value())
             #if ds_proxy_addr is None:
