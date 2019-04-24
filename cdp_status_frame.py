@@ -95,7 +95,7 @@ class CDPStatusFrame(SLFrame):
                             "", str(round(self.dapp.eth_available_to_withdraw(self.dapp.cup_id) * Decimal(self.dapp.pip.eth_price()) / self.dapp.WAD, 4)) + " USD", add_divider=False)
         self.add_button_row(
             [
-                ("Deposit", self.lock_eth_frame, 0),
+                ("Deposit ", self.lock_eth_frame, 0),
                 ("Withdraw", self.free_eth_frame, 2)
             ],
             layout=[1, 1, 1, 1]

@@ -33,6 +33,7 @@ from cdp_manager.contracts.maker_otc import MakerOtc
 from cdp_manager.contracts.oasis_proxy import OasisProxy
 from cdp_manager.contracts.proxy_registry import ProxyRegistry
 from cdp_manager.contracts.dai import Dai
+from cdp_manager.contracts.mkr import Mkr
 from cdp_manager.contracts.peth import Peth
 
 from cdp_manager.cdp_status_frame import CDPStatusFrame
@@ -44,6 +45,7 @@ class Dapp(SLDapp):
 
     RAY = Decimal(10 ** 27)
     WAD = Decimal(10 ** 18)
+    MAX_WEI = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 
     #debug(); pdb.set_trace()
 
@@ -65,6 +67,7 @@ class Dapp(SLDapp):
         self.tub = SaiTub(self.node)
         self.vox = SaiVox(self.node)
         self.dai = Dai(self.node)
+        self.mkr = Mkr(self.node)
         self.pip = SaiPip(self.node)
         self.pep = SaiPep(self.node)
         self.peth = Peth(self.node) 

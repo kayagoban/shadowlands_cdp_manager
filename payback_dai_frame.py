@@ -16,7 +16,6 @@ class PaybackDaiFrame(SLFrame):
 
     def initialize(self):
 
-        #pdb.set_trace()
         self.add_divider()
         self.add_label("Current account balance (ETH):", add_divider=False)
         self.add_label(str(round(self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)), add_divider=False)
@@ -36,13 +35,22 @@ class PaybackDaiFrame(SLFrame):
             return
 
         # check to see if DAI spending is unlocked for contract
-        allowance = self.dapp.dai.allowance(
+        #debug(); pdb.set_trace()
+        allowance = self.dapp.mkr.allowance(
             self.dapp.node.credstick.address, 
             self.dapp.ds_proxy.address
         )
 
         if allowance == 0:
-            debug(); pdb.set_trace()
+            self.dapp.add_transaction_dialog(
+                self.dapp.mkr.approve(
+                    self.dapp.ds_proxy.address, 
+                    self.dapp.MAX_WEI
+                ),
+                title="Allow cdp proxy to send MKR",
+                gas_limit=50000,
+            )
+            self.dapp.add_message_dialog("First we must allow the CDP proxy to send MKR")
         else:
             self.dapp.add_transaction_dialog(
                 self.dapp.ds_proxy.wipe(
@@ -51,7 +59,7 @@ class PaybackDaiFrame(SLFrame):
                     self.dapp.cup_id, 
                     self.deposit_eth_value() 
                 ),
-                title="Pay back DAI",
+                title="Pay back MKR",
                 gas_limit=375013,
             )
 
