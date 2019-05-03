@@ -69,13 +69,13 @@ class LockEthFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(round(self.dapp.projected_liquidation_price(self.dapp.cup_id, self.deposit_eth_value()), 4))
+            return str(round(self.dapp.projected_liquidation_price(self.dapp.cup_id, 0, self.deposit_eth_value()), 4))
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(round(self.dapp.projected_collateralization_ratio(self.dapp.cup_id, self.deposit_eth_value()), 4))
+            return str(round(self.dapp.projected_collateralization_ratio(self.dapp.cup_id, 0,  self.deposit_eth_value()), 4))
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 

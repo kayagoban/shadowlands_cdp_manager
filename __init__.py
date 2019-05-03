@@ -212,13 +212,22 @@ class Dapp(SLDapp):
 
 
     # lock Eth estimate methods
-    def projected_liquidation_price(self, cup_id, eth_to_deposit):
-        projected_eth_collateral = self.collateral_eth_value(cup_id) + eth_to_deposit * self.WAD
-        return self.liquidation_price(self.debt_value(cup_id), projected_eth_collateral)
+    #def projected_liquidation_price(self, cup_id, eth_to_deposit):
+    #    projected_eth_collateral = self.collateral_eth_value(cup_id) + eth_to_deposit * self.WAD
+    #    return self.liquidation_price(self.debt_value(cup_id), projected_eth_collateral)
 
-    def projected_collateralization_ratio(self, cup_id, eth_to_deposit):
-        projected_peth_value = self.collateral_peth_value(cup_id) + eth_to_deposit * self.WAD / self.peth_price()
-        return self.collateralization_ratio(projected_peth_value, self.debt_value(cup_id))
+    #def projected_collateralization_ratio(self, cup_id, eth_to_deposit):
+    #    projected_peth_value = self.collateral_peth_value(cup_id) + eth_to_deposit * self.WAD / self.peth_price()
+    #    return self.collateralization_ratio(projected_peth_value, self.debt_value(cup_id))
+
+    def projected_collateralization_ratio(self, cup_id, debt_value_change, eth_collateral_change):
+        #projected_peth_value = self.collateral_peth_value(cup_id) + eth_to_deposit * self.WAD / self.peth_price()
+        return self.collateralization_ratio(self.collateral_peth_value(cup_id) + (eth_collateral_change * self.WAD / self.peth_price()), self.debt_value(cup_id) + debt_value_change)
+
+    def projected_liquidation_price(self, cup_id, debt_value_change, eth_collateral_change):
+        #projected_eth_collateral = self.collateral_eth_value(cup_id) + eth_to_deposit * self.WAD
+        return self.liquidation_price(self.debt_value(cup_id) + debt_value_change, self.collateral_eth_value(cup_id) + eth_collateral_change * self.WAD)
+
 
 
 
