@@ -18,6 +18,7 @@ class PaybackDaiFrame(SLFrame):
 
         self.add_divider()
         self.add_label("Current account balance (ETH):", add_divider=False)
+        #debug(); pdb.set_trace()
         self.add_label(str(round(self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)), add_divider=False)
         self.add_divider(draw_line=True)
         self.add_label("How much DAI would you like to pay back?", add_divider=False)
