@@ -40,12 +40,17 @@ from cdp_manager.cdp_status_frame import CDPStatusFrame
 from cdp_manager.open_cdp_frame import OpenCDPFrame
 from cdp_manager.cup_id_prompt_frame import CupIDPromptFrame
 
+from cached_property import cached_property
+
 
 class Dapp(SLDapp):
 
     RAY = Decimal(10 ** 27)
     WAD = Decimal(10 ** 18)
-    MAX_WEI = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+
+    # It's a maxed out uint256
+    MAX_WEI = (2 ** 256) - 1 
+    #'0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 
     #debug(); pdb.set_trace()
 
@@ -54,13 +59,10 @@ class Dapp(SLDapp):
             self.add_message_dialog("This Dapp only functions on the Ethereum MainNet and Kovan")
             return
        
-        #debug(); pdb.set_trace()
-        self.show_wait_frame("Querying Maker's Web API for Cup ID...")
+        self.show_wait_frame("Querying Maker's Web API for CDP ID...")
 
-        #self._cdp_id_worker()
+        self.cup_id = None
         threading.Thread(target=self._open_cdp_worker).start()
-
-        #debug(); pdb.set_trace()
 
 
     def _open_cdp_worker(self):
@@ -136,51 +138,54 @@ class Dapp(SLDapp):
         response = requests.get(url).json()
         return response
 
+    # cached properties, to save unnecessary queries of our dear friend infura
+
+    @cached_property
     def peth_price(self):
         per = Decimal(self.tub.per())
         return per / self.RAY
 
-    def collateral_eth_value(self, cup_id):
-        return self.peth_price() * self.collateral_peth_value(cup_id)
+    @cached_property
+    def collateral_eth_value(self):
+        return self.peth_price * self.collateral_peth_value
 
+    @cached_property
     def liquidation_ratio(self):
         mat = Decimal(self.tub.mat())
         return  mat / self.RAY 
 
-    def cdp_liquidation_price(self, cup_id):
-        return self.liquidation_price(Decimal(self.tub.tab(cup_id)), self.collateral_eth_value(cup_id))
+    @cached_property
+    def cdp_liquidation_price(self):
+        return self.liquidation_price(Decimal(self.tub.tab(self.cup_id)), self.collateral_eth_value)
 
-    def liquidation_price(self, debt_value, collateral_eth_value):
-        return debt_value * self.liquidation_ratio() / collateral_eth_value
-
-    def collateral_peth_value(self, cup_id):
-        return Decimal(self.tub.ink(cup_id))
+    @cached_property
+    def collateral_peth_value(self):
+        return Decimal(self.tub.ink(self.cup_id))
 
     # abstract collateral price
+    @cached_property
     def tag(self):
         return Decimal(self.tub.tag()) / self.RAY
 
+    @cached_property
     def liquidation_penalty(self):
         axe = self.tub.axe()
         penalty = ((axe / self.RAY) - 1) * 100
         return round(Decimal(penalty), 2)
 
-    def debt_value(self, cup_id):
-        return Decimal(self.tub.tab(cup_id))
+    @cached_property
+    def debt_value(self):
+        return Decimal(self.tub.tab(self.cup_id))
 
+    @cached_property
     def global_dai_available(self):
         return Decimal(self.tub.rum()) 
 
+    @cached_property
     def target_price(self):
         return Decimal(self.vox.par())
 
-    def cdp_collateralization_ratio(self, cup_id):
-        return self.collateralization_ratio(self.collateral_peth_value(cup_id), self.debt_value(cup_id))
-
-    def collateralization_ratio(self, cdp_collateral_peth_value, debt_value):
-        coll_ratio = cdp_collateral_peth_value * self.tag() / debt_value * Decimal(100)
-        return round(coll_ratio, 3)
-
+    @cached_property
     def system_collateralization_ratio(self):
         totalWethLocked = Decimal(self.tub.pie())
         wethPrice = Decimal(self.pip.eth_price()) / 10 ** 18
@@ -191,25 +196,40 @@ class Dapp(SLDapp):
         scr = totalCollateralValue / systemDaiDebt
         return scr * 10 ** 18 * 100
 
-    def peth_available_to_withdraw(self, cup_id):
-        return self.collateral_peth_value(cup_id) / self.WAD - Decimal(150) / self.tag() /  Decimal(100) * self.debt_value(cup_id) / self.WAD 
+    @cached_property
+    def peth_available_to_withdraw(self):
+        return self.collateral_peth_value / self.WAD - Decimal(150) / self.tag /  Decimal(100) * self.debt_value / self.WAD 
 
-    def eth_available_to_withdraw(self, cup_id):
-        return self.peth_price() * self.peth_available_to_withdraw(cup_id)
+    @property
+    def eth_available_to_withdraw(self):
+        return self.peth_price * self.peth_available_to_withdraw
 
-    def dai_available_to_generate(self, cup_id):
-        debt_to_reach_150 =  ( Decimal(1) / (Decimal(1.50) / ( self.collateral_peth_value(cup_id) * self.tag() )  ) ) / self.WAD
-        return debt_to_reach_150 - (self.debt_value(cup_id) / self.WAD)
+    @property
+    def dai_available_to_generate(self):
+        debt_to_reach_150 =  ( Decimal(1) / (Decimal(1.50) / ( self.collateral_peth_value * self.tag )  ) ) / self.WAD
+        return debt_to_reach_150 - (self.debt_value / self.WAD)
 
+    @cached_property
     def stability_fee(self):
         fee = self.tub.fee()
         seconds_per_year = 60 * 60 * 24 * 365
         compounded_fee = (pow(fee / self.RAY, seconds_per_year) - 1) * 100
         return round(Decimal(compounded_fee), 2)
 
+    @cached_property
     def ether_price(self):
         return self.pip.eth_price() / self.WAD
 
+    @property
+    def cdp_collateralization_ratio(self):
+        return self.collateralization_ratio(self.collateral_peth_value, self.debt_value)
+
+    def collateralization_ratio(self, cdp_collateral_peth_value, debt_value):
+        coll_ratio = cdp_collateral_peth_value * self.tag / debt_value * Decimal(100)
+        return round(coll_ratio, 3)
+
+    def liquidation_price(self, debt_value, collateral_eth_value):
+        return debt_value * self.liquidation_ratio / collateral_eth_value
 
     # lock Eth estimate methods
     #def projected_liquidation_price(self, cup_id, eth_to_deposit):
@@ -220,13 +240,13 @@ class Dapp(SLDapp):
     #    projected_peth_value = self.collateral_peth_value(cup_id) + eth_to_deposit * self.WAD / self.peth_price()
     #    return self.collateralization_ratio(projected_peth_value, self.debt_value(cup_id))
 
-    def projected_collateralization_ratio(self, cup_id, debt_value_change, eth_collateral_change):
+    def projected_collateralization_ratio(self, debt_value_change, eth_collateral_change):
         #projected_peth_value = self.collateral_peth_value(cup_id) + eth_to_deposit * self.WAD / self.peth_price()
-        return self.collateralization_ratio(self.collateral_peth_value(cup_id) + (eth_collateral_change * self.WAD / self.peth_price()), self.debt_value(cup_id) + debt_value_change)
+        return self.collateralization_ratio(self.collateral_peth_value + (eth_collateral_change * self.WAD / self.peth_price), self.debt_value + debt_value_change)
 
-    def projected_liquidation_price(self, cup_id, debt_value_change, eth_collateral_change):
+    def projected_liquidation_price(self, debt_value_change, eth_collateral_change):
         #projected_eth_collateral = self.collateral_eth_value(cup_id) + eth_to_deposit * self.WAD
-        return self.liquidation_price(self.debt_value(cup_id) + debt_value_change, self.collateral_eth_value(cup_id) + eth_collateral_change * self.WAD)
+        return self.liquidation_price(self.debt_value + debt_value_change, self.collateral_eth_value + eth_collateral_change * self.WAD)
 
 
 
@@ -250,70 +270,6 @@ class Dapp(SLDapp):
         debug(); pdb.set_trace()
         self.lock_eth(self.cup_id, 0.05)
 
-
-    '''
-    async requireAllowance(
-    tokenSymbol,
-    receiverAddress,
-    { estimate = maxAllowance, promise }
-  ) {
-    const token = this.get('token').getToken(tokenSymbol);
-    const ownerAddress = this.get('token')
-      .get('web3')
-      .currentAddress();
-    const allowance = await token.allowance(ownerAddress, receiverAddress);
-
-    if (allowance.lt(maxAllowance.div(2)) && !this._shouldMinimizeAllowance) {
-      const tx = await token.approveUnlimited(receiverAddress, { promise });
-      this.get('event').emit('allowance/APPROVE', {
-        transaction: tx
-      });
-      return tx;
-    }
-
-    if (allowance.lt(estimate) && this._shouldMinimizeAllowance) {
-      const tx = await token.approve(receiverAddress, estimate, { promise });
-      this.get('event').emit('allowance/APPROVE', {
-        transaction: tx
-      });
-    }
-    }
-    
-    @tracksTransactions
-      async lockPeth(cdpId, amount, { unit = PETH, promise }) {
-        const hexCdpId = numberToBytes32(cdpId);
-        const value = getCurrency(amount, unit).toEthersBigNumber('wei');
-        await this.get('allowance').requireAllowance(
-          PETH,
-          this._tubContract().address,
-          { promise }
-        );
-        return this._tubContract().lock(hexCdpId, value, {
-          promise
-        });
-      }
-
-      async lockWeth(cdpId, amount, { unit = WETH, promise }) {
-        const wethPerPeth = await this.get('price').getWethToPethRatio();
-        const weth = getCurrency(amount, unit);
-        await this._conversionService().convertWethToPeth(weth, {
-          promise
-        });
-
-        return this.lockPeth(cdpId, weth.div(wethPerPeth), { promise });
-      }
-
-      async lockEth(cdpId, amount, { unit = ETH, promise }) {
-        const convert = this._conversionService().convertEthToWeth(amount, {
-          unit,
-          promise
-        });
-        await this._txMgr().confirm(convert);
-        return this.lockWeth(cdpId, amount, { promise });
-      }
-
-      
-    '''
 
 
     def report(self):

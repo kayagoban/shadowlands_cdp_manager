@@ -15,15 +15,12 @@ class LockEthFrame(SLFrame):
             return "Unavailable"
 
     def initialize(self):
-
         #pdb.set_trace()
-        self.add_divider()
         self.add_label("Current account balance (ETH):", add_divider=False)
-        self.add_label(str(round(self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)), add_divider=False)
-        self.add_divider(draw_line=True)
+        self.add_label(str(self.dapp.node.eth_balance)[0:8])
         self.add_label("How much ETH would you like to deposit?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("ETH Value:", default_value='1')
-        self.add_divider(draw_line=True)
+        #self.add_divider(draw_line=False)
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
@@ -69,13 +66,13 @@ class LockEthFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(round(self.dapp.projected_liquidation_price(self.dapp.cup_id, 0, self.deposit_eth_value()), 4))
+            return str(self.dapp.projected_liquidation_price(0, self.deposit_eth_value()))[0:8]
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(round(self.dapp.projected_collateralization_ratio(self.dapp.cup_id, 0,  self.deposit_eth_value()), 4))
+            return str(self.dapp.projected_collateralization_ratio(0,  self.deposit_eth_value()))[0:8]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 

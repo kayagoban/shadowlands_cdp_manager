@@ -19,7 +19,7 @@ class GenerateDaiFrame(SLFrame):
         #pdb.set_trace()
         self.add_divider()
         self.add_label("Current account balance (ETH):", add_divider=False)
-        self.add_label(str(round(self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)), add_divider=False)
+        self.add_label(str(self.dapp.collateral_eth_value / self.dapp.WAD)[0:8], add_divider=False)
         self.add_divider(draw_line=True)
         self.add_label("How much DAI would you like to generate?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='1')
@@ -28,7 +28,7 @@ class GenerateDaiFrame(SLFrame):
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
         self.add_label(self.projected_collateralization_ratio)
-        self.add_ok_cancel_buttons(self.generate_dai_choice, ok_text="Free ETH")
+        self.add_ok_cancel_buttons(self.generate_dai_choice, ok_text="Generate DAI")
 
     def generate_dai_choice(self):
         if self.deposit_eth_value() == Decimal(0.0):
@@ -68,13 +68,13 @@ class GenerateDaiFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(round(self.dapp.projected_liquidation_price(self.dapp.cup_id, self.deposit_eth_value()), 4))
+            return str(self.dapp.projected_liquidation_price(self.deposit_eth_value(), 0))[0:8]
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(round(self.dapp.projected_collateralization_ratio(self.dapp.cup_id, self.deposit_eth_value()), 4))
+            return str(self.dapp.projected_collateralization_ratio(self.deposit_eth_value(), 0))[0:8]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 

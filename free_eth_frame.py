@@ -19,7 +19,7 @@ class FreeEthFrame(SLFrame):
         #pdb.set_trace()
         self.add_divider()
         self.add_label("Current account balance (ETH):", add_divider=False)
-        self.add_label(str(round(self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)), add_divider=False)
+        self.add_label(str(self.dapp.collateral_eth_value / self.dapp.WAD)[0:8], add_divider=False)
         self.add_divider(draw_line=True)
         self.add_label("How much ETH would you like to free?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("ETH Value:", default_value='1')
@@ -68,13 +68,13 @@ class FreeEthFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(round(self.dapp.projected_liquidation_price(self.dapp.cup_id, 0, -1 * self.deposit_eth_value()), 4))
+            return str(round(self.dapp.projected_liquidation_price(0, -1 * self.deposit_eth_value()), 4))
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(round(self.dapp.projected_collateralization_ratio(self.dapp.cup_id, 0,  -1 * self.deposit_eth_value()), 4))
+            return str(round(self.dapp.projected_collateralization_ratio(0,  -1 * self.deposit_eth_value()), 4))
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 

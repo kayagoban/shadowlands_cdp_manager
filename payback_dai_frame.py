@@ -19,7 +19,8 @@ class PaybackDaiFrame(SLFrame):
         self.add_divider()
         self.add_label("Current account balance (ETH):", add_divider=False)
         #debug(); pdb.set_trace()
-        self.add_label(str(round(self.dapp.collateral_eth_value(self.dapp.cup_id) / self.dapp.WAD, 4)), add_divider=False)
+        #self.add_label(str(round(self.dapp.collateral_eth_value / self.dapp.WAD, 4)), add_divider=False)
+        self.add_label(str(self.dapp.node.eth_balance), add_divider=False)
         self.add_divider(draw_line=True)
         self.add_label("How much DAI would you like to pay back?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='1')
@@ -70,13 +71,13 @@ class PaybackDaiFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(round(self.dapp.projected_liquidation_price(self.dapp.cup_id, -(self.deposit_eth_value()), 0), 4))
+            return str(round(self.dapp.projected_liquidation_price(-1 * self.dapp.WAD * self.deposit_eth_value(), 0), 4))
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(round(self.dapp.projected_collateralization_ratio(self.dapp.cup_id, -(self.deposit_eth_value()), 0), 4))
+            return str(round(self.dapp.projected_collateralization_ratio(-1 * self.dapp.WAD * self.deposit_eth_value(), 0), 4))
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 
