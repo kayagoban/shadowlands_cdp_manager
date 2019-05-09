@@ -23,19 +23,19 @@ class CDPStatusFrame(SLFrame):
         self.close()
 
     def free_eth_frame(self):
-        self.dapp.add_frame(FreeEthFrame, 20, 50, title="Free Collateral")
+        self.dapp.add_frame(FreeEthFrame, 15, 50, title="Free Collateral")
         self.close()
 
     def payback_dai_frame(self):
-        self.dapp.add_frame(PaybackDaiFrame, 20, 50, title="Pay back DAI")
+        self.dapp.add_frame(PaybackDaiFrame, 18, 50, title="Pay back DAI")
+        self.close()
+
+    def generate_dai_frame(self):
+        self.dapp.add_frame(GenerateDaiFrame, 15, 50, title="Borrow DAI")
         self.close()
 
     def close_cdp_frame(self):
         self.dapp.add_frame(CloseCDPFrame, 20, 50, title="Close CDP")
-        self.close()
-
-    def generate_dai_frame(self):
-        self.dapp.add_frame(GenerateDaiFrame, 20, 50, title="Borrow DAI")
         self.close()
 
     def move_cdp_frame(self):
@@ -84,7 +84,7 @@ class CDPStatusFrame(SLFrame):
             self.add_label_quad("Liq. penalty:", 
                                 str(round(self.dapp.liquidation_penalty, 4)) + " %", 
                                 "Stability Fee:", 
-                                str(round(self.dapp.stability_fee, 4)) + " %", 
+                                str(self.dapp.stability_fee)[0:6] + " %", 
                                 add_divider=False)
 
             self.add_divider(draw_line=True)

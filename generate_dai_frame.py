@@ -15,15 +15,10 @@ class GenerateDaiFrame(SLFrame):
             return "Unavailable"
 
     def initialize(self):
-
-        #pdb.set_trace()
-        self.add_divider()
-        self.add_label("Current account balance (ETH):", add_divider=False)
-        self.add_label(str(self.dapp.collateral_eth_value / self.dapp.WAD)[0:8], add_divider=False)
-        self.add_divider(draw_line=True)
         self.add_label("How much DAI would you like to generate?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='1')
-        self.add_divider(draw_line=True)
+        self.add_label("Current account balance (ETH):", add_divider=False)
+        self.add_label(str(self.dapp.dai_available_to_generate)[0:10])
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
@@ -32,7 +27,7 @@ class GenerateDaiFrame(SLFrame):
 
     def generate_dai_choice(self):
         if self.deposit_eth_value() == Decimal(0.0):
-            self.dapp.add_message_dialog("0 ETH is not a valid choice")
+            self.dapp.add_message_dialog("0 is not a valid choice")
             return
 
         #debug(); pdb.set_trace()

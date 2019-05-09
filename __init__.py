@@ -220,6 +220,10 @@ class Dapp(SLDapp):
     def ether_price(self):
         return self.pip.eth_price() / self.WAD
 
+    @cached_property
+    def stability_fee(self):
+        return self.tub.rap(self.cup_id)
+
     @property
     def cdp_collateralization_ratio(self):
         return self.collateralization_ratio(self.collateral_peth_value, self.debt_value)

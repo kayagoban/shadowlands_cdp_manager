@@ -16,24 +16,23 @@ class PaybackDaiFrame(SLFrame):
 
     def initialize(self):
 
-        self.add_divider()
-        self.add_label("Current account balance (ETH):", add_divider=False)
-        #debug(); pdb.set_trace()
-        #self.add_label(str(round(self.dapp.collateral_eth_value / self.dapp.WAD, 4)), add_divider=False)
-        self.add_label(str(self.dapp.node.eth_balance), add_divider=False)
-        self.add_divider(draw_line=True)
         self.add_label("How much DAI would you like to pay back?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='1')
-        self.add_divider(draw_line=True)
+        self.add_label("Outstanding DAI debt:", add_divider=False)
+        self.add_label(str(self.dapp.debt_value / self.dapp.WAD)[0:10])
+
+        self.add_label("Stability fee(MKR):", add_divider=False)
+        self.add_label(str(self.dapp.stability_fee / self.dapp.WAD)[0:10])
+
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
         self.add_label(self.projected_collateralization_ratio)
-        self.add_ok_cancel_buttons(self.wipe_dai_choice, ok_text="Free ETH")
+        self.add_ok_cancel_buttons(self.wipe_dai_choice, ok_text="Pay back DAI")
 
     def wipe_dai_choice(self):
         if self.deposit_eth_value() == Decimal(0.0):
-            self.dapp.add_message_dialog("0 ETH is not a valid choice")
+            self.dapp.add_message_dialog("0 is not a valid choice")
             return
 
         # check to see if DAI spending is unlocked for contract

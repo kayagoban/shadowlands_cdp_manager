@@ -15,12 +15,10 @@ class LockEthFrame(SLFrame):
             return "Unavailable"
 
     def initialize(self):
-        #pdb.set_trace()
-        self.add_label("Current account balance (ETH):", add_divider=False)
-        self.add_label(str(self.dapp.node.eth_balance)[0:8])
         self.add_label("How much ETH would you like to deposit?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("ETH Value:", default_value='1')
-        #self.add_divider(draw_line=False)
+        self.add_label("Current account balance (ETH):", add_divider=False)
+        self.add_label(str(self.dapp.node.eth_balance)[0:8])
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
@@ -29,7 +27,7 @@ class LockEthFrame(SLFrame):
 
     def lock_eth_choice(self):
         if self.deposit_eth_value() == Decimal(0.0):
-            self.dapp.add_message_dialog("0 ETH is not a valid choice")
+            self.dapp.add_message_dialog("0 is not a valid choice")
             return
 
         #debug(); pdb.set_trace()
