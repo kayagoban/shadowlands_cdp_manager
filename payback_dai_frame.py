@@ -22,7 +22,15 @@ class PaybackDaiFrame(SLFrame):
         self.add_label(str(self.dapp.debt_value / self.dapp.WAD)[0:10])
 
         self.add_label("Stability fee(MKR):", add_divider=False)
-        self.add_label(str(self.dapp.stability_fee / self.dapp.WAD)[0:10])
+        self.add_label(str(self.dapp.cdp_stability_fee)[0:10])
+
+        self.add_label("Your MKR balance:", add_divider=False)
+        mkr = [x['balance'] for x in self.dapp.node.erc20_balances if x['name'] == 'MKR']
+        if len(mkr) == 0:
+            mkr = '?'
+        else:
+            mkr = str(mkr[0])[0:8]
+        self.add_label(mkr)
 
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)

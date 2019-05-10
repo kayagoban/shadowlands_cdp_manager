@@ -221,8 +221,8 @@ class Dapp(SLDapp):
         return self.pip.eth_price() / self.WAD
 
     @cached_property
-    def stability_fee(self):
-        return self.tub.rap(self.cup_id)
+    def cdp_stability_fee(self):
+        return self.tub.rap(self.cup_id) / self.pep.mkr_price()
 
     @property
     def cdp_collateralization_ratio(self):
