@@ -1,7 +1,7 @@
 from shadowlands.sl_dapp import SLFrame
 
 import decimal
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, DivisionByZero
 
 import pdb
 from shadowlands.tui.debug import debug
@@ -17,26 +17,48 @@ class PaybackDaiFrame(SLFrame):
     def initialize(self):
 
         self.add_label("How much DAI would you like to pay back?", add_divider=False)
-        self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='1')
+        self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='')
         self.add_label("Outstanding DAI debt:", add_divider=False)
         self.add_label(str(self.dapp.debt_value / self.dapp.WAD)[0:10])
 
-        self.add_label("Stability fee(MKR):", add_divider=False)
-        self.add_label(str(self.dapp.cdp_stability_fee)[0:10])
+        options = [
+            ('Pay stability fee with MKR', 'MKR'),
+            ('Pay stability fee with DAI', 'DAI')
+        ]
+        self.fee_radio_button = self.add_radiobuttons(options, default_value='MKR')
 
-        self.add_label("Your MKR balance:", add_divider=False)
-        mkr = [x['balance'] for x in self.dapp.node.erc20_balances if x['name'] == 'MKR']
-        if len(mkr) == 0:
-            mkr = '?'
-        else:
-            mkr = str(mkr[0])[0:8]
-        self.add_label(mkr)
+        self.add_label(self.stability_fee_label, add_divider=False)
+        self.add_label(self.stability_fee)
+
+        #self.add_label("Your MKR balance:", add_divider=False)
+        #mkr = [x['balance'] for x in self.dapp.node.erc20_balances if x['name'] == 'MKR']
+        #if len(mkr) == 0:
+        #    mkr = '?'
+        #else:
+        #    mkr = str(mkr[0])[0:8]
+        #self.add_label(mkr)
 
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
         self.add_label(self.projected_collateralization_ratio)
         self.add_ok_cancel_buttons(self.wipe_dai_choice, ok_text="Pay back DAI")
+
+    def stability_fee_label(self):
+        return "Stability fee({}):".format(self.fee_radio_button())
+
+    def stability_fee(self):
+        try:
+            if self.fee_radio_button() == 'MKR':
+                fee = self.dapp.mkr_proportional_stability_fee(
+                    self.deposit_eth_value()
+                ) 
+            elif self.fee_radio_button() == 'DAI':
+                fee = self.dapp.proportional_stability_fee(self.deposit_eth_value()) 
+            return str(fee)[0:10]
+        except DivisionByZero:
+            return ""
+
 
     def wipe_dai_choice(self):
         if self.deposit_eth_value() == Decimal(0.0):

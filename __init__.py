@@ -210,6 +210,15 @@ class Dapp(SLDapp):
         return debt_to_reach_150 - (self.debt_value / self.WAD)
 
     @cached_property
+    def ether_price(self):
+        return self.pip.eth_price() / self.WAD
+
+    @cached_property
+    def mkr_price(self):
+        return self.pep.mkr_price()
+
+
+    @cached_property
     def stability_fee(self):
         fee = self.tub.fee()
         seconds_per_year = 60 * 60 * 24 * 365
@@ -217,12 +226,21 @@ class Dapp(SLDapp):
         return round(Decimal(compounded_fee), 2)
 
     @cached_property
-    def ether_price(self):
-        return self.pip.eth_price() / self.WAD
+    def mkr_stability_fee(self):
+        return self.stability_fee / self.pep.mkr_price()
 
+    # fee for this particular cdp
     @cached_property
     def cdp_stability_fee(self):
-        return self.tub.rap(self.cup_id) / self.pep.mkr_price()
+        return self.tub.rap(self.cup_id)
+
+    # Takes and returns non WAD human units for payback amount
+    def proportional_stability_fee(self, payback_amount):
+        return (Decimal(payback_amount) * self.WAD / self.debt_value) * self.cdp_stability_fee / self.WAD
+    # Takes and returns non WAD human units for payback amount
+    def mkr_proportional_stability_fee(self, payback_amount):
+        #debug(); pdb.set_trace()
+        return  self.proportional_stability_fee(payback_amount) /  (self.mkr_price / self.WAD)
 
     @property
     def cdp_collateralization_ratio(self):
