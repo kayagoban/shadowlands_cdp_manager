@@ -21,28 +21,27 @@ class PaybackDaiFrame(SLFrame):
         self.add_label("Outstanding DAI debt:", add_divider=False)
         self.add_label(str(self.dapp.debt_value / self.dapp.WAD)[0:10])
 
-        options = [
-            ('Pay stability fee with MKR', 'MKR'),
-            ('Pay stability fee with DAI', 'DAI')
-        ]
-        self.fee_radio_button = self.add_radiobuttons(options, default_value='MKR')
+        #options = [
+        #    ('Pay stability fee with MKR', 'MKR'),
+        #    ('Pay stability fee with DAI', 'DAI')
+        #]
+        #self.fee_radio_button = self.add_radiobuttons(options, default_value='MKR')
 
         self.add_label(self.stability_fee_label, add_divider=False)
         self.add_label(self.stability_fee)
-
-        #self.add_label("Your MKR balance:", add_divider=False)
-        #mkr = [x['balance'] for x in self.dapp.node.erc20_balances if x['name'] == 'MKR']
-        #if len(mkr) == 0:
-        #    mkr = '?'
-        #else:
-        #    mkr = str(mkr[0])[0:8]
-        #self.add_label(mkr)
 
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
         self.add_label(self.projected_collateralization_ratio)
         self.add_ok_cancel_buttons(self.wipe_dai_choice, ok_text="Pay back DAI")
+
+    # This is a stand-in for an actual radio button, which would
+    # allow a choice of DAI vs. MKR to pay the fee.  
+    # Hardcoded to MKR for now.
+
+    def fee_radio_button(self):
+        return "MKR"
 
     def stability_fee_label(self):
         return "Stability fee({}):".format(self.fee_radio_button())
@@ -55,6 +54,10 @@ class PaybackDaiFrame(SLFrame):
                 ) 
             elif self.fee_radio_button() == 'DAI':
                 fee = self.dapp.proportional_stability_fee(self.deposit_eth_value()) 
+
+            if fee == Decimal('0'):
+                return "0"
+
             return str(fee)[0:10]
         except DivisionByZero:
             return ""
@@ -65,37 +68,57 @@ class PaybackDaiFrame(SLFrame):
             self.dapp.add_message_dialog("0 is not a valid choice")
             return
 
-        # check to see if DAI spending is unlocked for contract
-        #debug(); pdb.set_trace()
-        allowance = self.dapp.mkr.allowance(
+        # check to see if token spending is unlocked for contract
+        fee_denomination = self.fee_radio_button()
+
+        if fee_denomination == 'MKR':
+            fee_erc20_contract = self.dapp.mkr
+        elif fee_denomination == 'DAI':
+            fee_erc20_contract = self.dapp.dai
+
+        allowance = fee_erc20_contract.allowance(
             self.dapp.node.credstick.address, 
             self.dapp.ds_proxy.address
         )
-
+        
         if allowance == 0:
             self.dapp.add_transaction_dialog(
-                self.dapp.mkr.approve(
+                fee_erc20_contract.approve(
                     self.dapp.ds_proxy.address, 
                     self.dapp.MAX_WEI
                 ),
-                title="Allow cdp proxy to send MKR",
+                title="Allow cdp proxy to send {}".format(fee_denomination),
                 gas_limit=50000,
             )
-            self.dapp.add_message_dialog("First we must allow the CDP proxy to send MKR")
-        else:
-            self.dapp.add_transaction_dialog(
-                self.dapp.ds_proxy.wipe(
-                    self.dapp.sai_proxy.address, 
-                    self.dapp.tub.address,
-                    self.dapp.cup_id, 
-                    self.deposit_eth_value() 
-                ),
-                title="Pay back MKR",
-                gas_limit=375013,
+            self.dapp.add_message_dialog(
+                "First we must allow the CDP proxy to send {}".format(fee_denomination)
             )
+            self.close()
+            return
 
+        # check to see if user actually has enough tokens to pay fee
+        #debug(); pdb.set_trace()
+        bal = next([x['balance'] for x in self.dapp.node.erc20_balances if x['name'] == fee_denomination])
+        if bal is None or bal < self.deposit_eth_value():
+            self.dapp.add_message_dialog(
+                "You don't have enough {}.".format(fee_denomination)
+            )
+            return
+
+
+        self.dapp.add_transaction_dialog(
+            self.dapp.ds_proxy.wipe(
+                self.dapp.sai_proxy.address, 
+                self.dapp.tub.address,
+                self.dapp.cup_id, 
+                self.deposit_eth_value() 
+            ),
+            title="Pay back {} DAI".format(
+                self.deposit_eth_value_string()
+            ),
+            gas_limit=375013,
+        )
         self.close()
-        return
  
 
     def projected_liquidation_price(self):
