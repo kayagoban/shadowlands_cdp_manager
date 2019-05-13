@@ -109,7 +109,7 @@ class Dapp(SLDapp):
 
     def _migrate_cdp_at(self, lad):
         # If a proxy exists, give.
-        ds_proxy = self.dapp.proxy_registry.proxies(lad)
+        ds_proxy = self.proxy_registry.proxies(lad)
         if ds_proxy is not None:
             self.add_transaction_dialog(
                 self.ds_proxy.give(
@@ -119,18 +119,18 @@ class Dapp(SLDapp):
                     target
                 ),
                 title="Set your proxy as CDP owner",
-                gas_limit=55000
+                gas_limit=505000
             )
-            self.add_message_dialog("Migration step 2: give ownership to your proxy")
+            self.add_message_dialog("Step 2 of 2: give ownership to proxy")
         else:
             self.add_transaction_dialog(
                 self.proxy_registry.build(),
                 title="Create CDP proxy",
-                gas_limit=55000
+                gas_limit=805000
             )
-            self.add_message_dialog("Migration step 1: create proxy contract to own the CDP")
+            self.add_message_dialog("Step 1 of 2: create proxy to own CDP")
 
-        self.add_message_dialog("This is an old style CDP setup that must be updated to work with the new CDP portal.")
+        self.add_message_dialog("Updating CDP to work with the new CDP portal.")
 
 
 

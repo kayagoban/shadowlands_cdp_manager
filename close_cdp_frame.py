@@ -52,7 +52,7 @@ class CloseCDPFrame(SLFrame):
             self.dapp.ds_proxy.address
         )
 
-        if allowance == 0:
+        if allowance < self.dapp.mkr_cdp_stability_fee:
             self.dapp.add_transaction_dialog(
                 fee_erc20_contract.approve(
                     self.dapp.ds_proxy.address, 
