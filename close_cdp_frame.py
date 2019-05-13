@@ -14,37 +14,27 @@ class CloseCDPFrame(SLFrame):
         info_text = [
             "Closing your CDP requires paying back your",
             "outstanding Dai debt, as well as the ",
-            "accumulated stability fee. The stability",
-            "fee can be paid in either DAI or MKR."
+            "accumulated stability fee, in MKR."
         ]
-
-        self.add_divider()
 
         for i in info_text:
             self.add_label(i, add_divider=False)
 
         self.add_divider()
 
-        self.outstanding_dai = Decimal(0.1000000)
+        self.add_label_pair("Outstanding DAI:", str(self.dapp.debt_value / self.dapp.WAD)[0:18])
 
-        self.add_label_pair("Outstanding DAI:", str(round(self.outstanding_dai, 10)))
+        self.add_label_pair("Stability fee in MKR:", str(self.dapp.mkr_cdp_stability_fee)[0:18])
 
-        self.add_divider()
+        #self.stability_fee_options = [
+        #    ("MKR", 0),
+        #    ("DAI", 1)
+        #]
 
-        self.stability_fee = Decimal(0.000033)
-        
-
-        self.add_label_pair("Stability fee in MKR:", str(round(self.stability_fee, 10)))
-
-        self.stability_fee_options = [
-            ("MKR", 0),
-            ("DAI", 1)
-        ]
-
-        self.stability_fee_denomination = self.add_radiobuttons(self.stability_fee_options, label="Pay stability fee in:")
+        #self.stability_fee_denomination = self.add_radiobuttons(self.stability_fee_options, label="Pay stability fee in:")
 
         
-        self.add_divider()
+        #self.add_divider()
 
         self.add_ok_cancel_buttons(self.close_cdp_choice, cancel_fn=self.close, ok_text="Close CDP", cancel_text="Cancel")
 
@@ -54,6 +44,31 @@ class CloseCDPFrame(SLFrame):
         # check for mkr or dai stability fee choice
 
         # check to see if we need to unlock
+        fee_denomination = 'MKR'
+        fee_erc20_contract = self.dapp.mkr
+
+        allowance = fee_erc20_contract.allowance(
+            self.dapp.node.credstick.address, 
+            self.dapp.ds_proxy.address
+        )
+
+        if allowance == 0:
+            self.dapp.add_transaction_dialog(
+                fee_erc20_contract.approve(
+                    self.dapp.ds_proxy.address, 
+                    self.dapp.MAX_WEI
+                ),
+                title="Allow cdp proxy to send {}".format(fee_denomination),
+                gas_limit=50000,
+            )
+            self.dapp.add_message_dialog(
+                "First we must allow the CDP proxy to send {}".format(fee_denomination)
+            )
+            self.close()
+            return
+
+
+
 
         # unlock if needed - and then back to this frame
         self.dapp.add_transaction_dialog(

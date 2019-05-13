@@ -35,7 +35,7 @@ class CDPStatusFrame(SLFrame):
         self.close()
 
     def close_cdp_frame(self):
-        self.dapp.add_frame(CloseCDPFrame, 20, 50, title="Close CDP")
+        self.dapp.add_frame(CloseCDPFrame, 11, 50, title="Close CDP")
         self.close()
 
     def move_cdp_frame(self):

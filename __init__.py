@@ -62,6 +62,7 @@ class Dapp(SLDapp):
         self.show_wait_frame("Querying Maker's Web API for CDP ID...")
 
         self.cup_id = None
+
         threading.Thread(target=self._open_cdp_worker).start()
 
 
@@ -76,6 +77,7 @@ class Dapp(SLDapp):
         self.proxy_registry = ProxyRegistry(self.node)
         self.sai_proxy = SaiProxy(self.node)
         self.erc20_contract = { 'DAI': self.dai, 'PETH': self.peth }
+
 
         try:
             response = self.getCdpId(self.node.credstick.address)  
@@ -233,6 +235,10 @@ class Dapp(SLDapp):
     @cached_property
     def cdp_stability_fee(self):
         return self.tub.rap(self.cup_id)
+
+    @cached_property
+    def mkr_cdp_stability_fee(self):
+        return self.cdp_stability_fee / self.pep.mkr_price()
 
     # Takes and returns non WAD human units for payback amount
     def proportional_stability_fee(self, payback_amount):
