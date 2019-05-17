@@ -27,7 +27,7 @@ class CDPStatusFrame(SLFrame):
         self.close()
 
     def payback_dai_frame(self):
-        self.dapp.add_frame(PaybackDaiFrame, 21, 50, title="Pay back DAI")
+        self.dapp.add_frame(PaybackDaiFrame, 18, 50, title="Pay back DAI")
         self.close()
 
     def generate_dai_frame(self):

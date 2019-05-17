@@ -63,8 +63,8 @@ class Dapp(SLDapp):
 
         self.cup_id = None
 
-        self._open_cdp_worker()
-        #threading.Thread(target=self._open_cdp_worker).start()
+        #self._open_cdp_worker()
+        threading.Thread(target=self._open_cdp_worker).start()
 
 
     def _open_cdp_worker(self):
@@ -238,15 +238,11 @@ class Dapp(SLDapp):
 
     @cached_property
     def mkr_cdp_stability_fee(self):
-        return self.cdp_stability_fee / self.pep.mkr_price()
+        return self.cdp_stability_fee / self.mkr_price()
 
     # Takes and returns non WAD human units for payback amount
     def proportional_stability_fee(self, payback_amount):
         return (Decimal(payback_amount) * self.WAD / self.debt_value) * self.cdp_stability_fee / self.WAD
-    # Takes and returns non WAD human units for payback amount
-    def mkr_proportional_stability_fee(self, payback_amount):
-        #debug(); pdb.set_trace()
-        return  self.proportional_stability_fee(payback_amount) /  (self.mkr_price / self.WAD)
 
     @property
     def cdp_collateralization_ratio(self):

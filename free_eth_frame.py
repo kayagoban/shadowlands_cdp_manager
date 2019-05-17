@@ -16,7 +16,7 @@ class FreeEthFrame(SLFrame):
 
     def initialize(self):
         self.add_label("How much ETH would you like to free?", add_divider=False)
-        self.deposit_textbox_value = self.add_textbox("ETH Value:", default_value='1')
+        self.deposit_textbox_value = self.add_textbox("ETH Value:", default_value='')
         self.add_label("Max ETH available to withdraw:", add_divider=False)
         self.add_label(str(self.dapp.eth_available_to_withdraw)[0:8])
         self.add_label("Projected liquidation price:", add_divider=False)

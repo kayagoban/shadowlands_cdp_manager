@@ -16,7 +16,7 @@ class GenerateDaiFrame(SLFrame):
 
     def initialize(self):
         self.add_label("How much DAI would you like to generate?", add_divider=False)
-        self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='1')
+        self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='')
         self.add_label("Current account balance (ETH):", add_divider=False)
         self.add_label(str(self.dapp.dai_available_to_generate)[0:10])
         self.add_label("Projected liquidation price:", add_divider=False)
@@ -63,13 +63,13 @@ class GenerateDaiFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(self.dapp.projected_liquidation_price(self.deposit_eth_value(), 0))[0:8]
+            return str(self.dapp.projected_liquidation_price(self.deposit_eth_value() * self.dapp.WAD, 0))[0:8]
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(self.dapp.projected_collateralization_ratio(self.deposit_eth_value(), 0))[0:8]
+            return str(self.dapp.projected_collateralization_ratio(self.deposit_eth_value() * self.dapp.WAD, 0))[0:8]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 

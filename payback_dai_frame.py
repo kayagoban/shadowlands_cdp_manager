@@ -34,11 +34,24 @@ class PaybackDaiFrame(SLFrame):
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
         self.add_label(self.projected_collateralization_ratio)
+        self.add_button_row(
+            [
+                ("Pay back DAI", self.wipe_dai_choice, 0),
+                ("Get MKR", lambda: self.dapp.add_uniswap_frame(
+                    self.dapp.mkr.address, value=Decimal(self.uniswap_to_buy_value())
+                ), 1),
+                ("Back", self.close, 2)
+            ], 
+            layout=[40, 20, 20]
+
+        )
         self.add_ok_cancel_buttons(self.wipe_dai_choice, ok_text="Pay back DAI")
 
     # This is a stand-in for an actual radio button, which would
     # allow a choice of DAI vs. MKR to pay the fee.  
     # Hardcoded to MKR for now.
+    def uniswap_to_buy_value(self):
+        return Decimal(self.stability_fee()) + Decimal(self.stability_fee()) * Decimal(0.01)
 
     def fee_radio_button(self):
         return "MKR"
@@ -49,11 +62,9 @@ class PaybackDaiFrame(SLFrame):
     def stability_fee(self):
         try:
             if self.fee_radio_button() == 'MKR':
-                fee = self.dapp.mkr_proportional_stability_fee(
+                fee = self.dapp.proportional_stability_fee(
                     self.deposit_eth_value()
                 ) 
-            elif self.fee_radio_button() == 'DAI':
-                fee = self.dapp.proportional_stability_fee(self.deposit_eth_value()) 
 
             if fee == Decimal('0'):
                 return "0"
