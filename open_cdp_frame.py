@@ -25,7 +25,7 @@ class OpenCDPFrame(SLFrame):
                 self.dai_withdrawal_value()
             ),
             title="Open CDP",
-            gas_limit=968650,
+            gas_limit=980000,
             tx_value=Decimal(self.eth_deposit_value()),
         )
 
