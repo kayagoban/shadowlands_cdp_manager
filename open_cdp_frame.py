@@ -11,27 +11,22 @@ import pdb
 class OpenCDPFrame(SLFrame):
 
     def initialize(self):
-        self.add_divider()
         self.add_label("This address does not yet have a CDP registered.")
-        self.add_divider(draw_line=True)
-        self.eth_deposit_value = self.add_textbox("ETH to deposit:", default_value='1')
-        self.add_divider(draw_line=True)
-        self.dai_withdrawal_value = self.add_textbox("DAI to generate:", default_value='1')
+        self.eth_deposit_value = self.add_textbox("ETH to deposit:", default_value='')
+        self.dai_withdrawal_value = self.add_textbox("DAI to generate:", default_value='')
         self.add_ok_cancel_buttons(self.open_cdp, ok_text="Open CDP")
 
     def open_cdp(self):
         #try:
-        self.dapp.add_transaction_wait_dialog(
-            lambda: self.dapp.sai_proxy.createOpenLockAndDraw(
+        self.dapp.add_transaction_dialog(
+            self.dapp.sai_proxy.createOpenLockAndDraw(
                 self.dapp.proxy_registry.address, 
                 self.dapp.tub.address, 
                 self.dai_withdrawal_value()
             ),
-            wait_message="Wait for the receipt",
             title="Open CDP",
             gas_limit=968650,
             tx_value=Decimal(self.eth_deposit_value()),
-            receipt_proc=self.process_receipt
         )
 
         #self.dapp.add_transaction_dialog(

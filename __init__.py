@@ -90,7 +90,7 @@ class Dapp(SLDapp):
         # No registered cup id according to web api.
         # NOTE There *should* be a way to get cup ID onchain. 
         if len(response) == 0:
-            self.add_frame(OpenCDPFrame, 20, 56, title="Open New CDP")
+            self.add_frame(OpenCDPFrame, 9, 56, title="Open New CDP")
         else:
             self.cup_id = response[0]['id']
             lad = response[0]['lad']
