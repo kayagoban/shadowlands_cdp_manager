@@ -47,6 +47,10 @@ class SaiTub(Contract):
     def open(self):
         return self.functions.open()
 
+    def give(self, cup_id, guy):
+        return self.functions.give(self.bytes32(cup_id), guy)
+
+
     #def lock(self, cdp_id, amount):
     #    fn = self.functions.lock(
     #        bytes32(cdp_id), 

@@ -63,7 +63,8 @@ class Dapp(SLDapp):
 
         self.cup_id = None
 
-        threading.Thread(target=self._open_cdp_worker).start()
+        self._open_cdp_worker()
+        #threading.Thread(target=self._open_cdp_worker).start()
 
 
     def _open_cdp_worker(self):
@@ -111,12 +112,11 @@ class Dapp(SLDapp):
         # If a proxy exists, give.
         ds_proxy = self.proxy_registry.proxies(lad)
         if ds_proxy is not None:
+            #debug(); pdb.set_trace()
             self.add_transaction_dialog(
-                self.ds_proxy.give(
-                    self.sai_proxy.address, 
-                    self.tub.address, 
+                self.tub.give(
                     self.cup_id, 
-                    target
+                    ds_proxy
                 ),
                 title="Set your proxy as CDP owner",
                 gas_limit=505000
