@@ -37,13 +37,10 @@ class PaybackDaiFrame(SLFrame):
         self.add_button_row(
             [
                 ("Pay back DAI", self.wipe_dai_choice, 0),
-                ("Get MKR", lambda: self.dapp.add_uniswap_frame(
-                    self.dapp.mkr.address, value=Decimal(self.uniswap_to_buy_value())
-                ), 1),
+                ("Get MKR", lambda: self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount=self.uniswap_to_buy_value()), 1),
                 ("Back", self.close, 2)
             ], 
             layout=[40, 20, 20]
-
         )
         self.add_ok_cancel_buttons(self.wipe_dai_choice, ok_text="Pay back DAI")
 
