@@ -37,12 +37,16 @@ class PaybackDaiFrame(SLFrame):
         self.add_button_row(
             [
                 ("Pay back DAI", self.wipe_dai_choice, 0),
-                ("Get MKR", lambda: self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount=self.uniswap_to_buy_value()), 1),
+                ("Get MKR", self.uniswap_frame, 1),
                 ("Back", self.close, 2)
             ], 
-            layout=[40, 20, 20]
+            layout=[6, 5, 5]
         )
-        self.add_ok_cancel_buttons(self.wipe_dai_choice, ok_text="Pay back DAI")
+
+    def uniswap_frame(self):
+        self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount=self.uniswap_to_buy_value())
+        self.close()
+
 
     # This is a stand-in for an actual radio button, which would
     # allow a choice of DAI vs. MKR to pay the fee.  
@@ -106,8 +110,15 @@ class PaybackDaiFrame(SLFrame):
 
         # check to see if user actually has enough tokens to pay fee
         #debug(); pdb.set_trace()
-        bal = next([x['balance'] for x in self.dapp.node.erc20_balances if x['name'] == fee_denomination])
-        if bal is None or bal < self.deposit_eth_value():
+        try:
+            bal = [x['balance'] for x in self.dapp.node.erc20_balances if x['name'] == fee_denomination][0]
+        except:
+            self.dapp.add_message_dialog(
+                "No {} balance found.  Is the token being tracked?".format(fee_denomination)
+            )
+            return
+
+        if bal is None or bal < self.dapp.proportional_stability_fee( self.deposit_eth_value()):
             self.dapp.add_message_dialog(
                 "You don't have enough {}.".format(fee_denomination)
             )
