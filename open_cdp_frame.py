@@ -20,12 +20,12 @@ class OpenCDPFrame(SLFrame):
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
-        self.add_label(self.projected_collateralization_ratio())
+        self.add_label(self.projected_collateralization_ratio)
+
         self.add_label("Minimum ratio:", add_divider=False)
         self.add_label(str(self.dapp.liquidation_ratio * 100)[0:6] + " %")
         self.add_label("Liquidation Penalty:", add_divider=False)
         self.add_label(str(self.dapp.liquidation_penalty)[0:6] + " %")
-
 
         self.add_button_row(
             [
@@ -42,7 +42,6 @@ class OpenCDPFrame(SLFrame):
             return Decimal(self.eth_deposit_value() )
         except (TypeError, InvalidOperation):
             return Decimal(0.0)
-
 
     def dai_value_string(self):
         return str(self.dai_value())
