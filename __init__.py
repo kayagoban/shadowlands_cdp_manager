@@ -91,7 +91,7 @@ class Dapp(SLDapp):
         # No registered cup id according to web api.
         # NOTE There *should* be a way to get cup ID onchain. 
         if len(response) == 0:
-            self.add_frame(OpenCDPFrame, 9, 56, title="Open New CDP")
+            self.add_frame(OpenCDPFrame, 18, 56, title="Open New CDP")
         else:
             self.cup_id = response[0]['id']
             lad = response[0]['lad']
@@ -162,7 +162,10 @@ class Dapp(SLDapp):
 
     @cached_property
     def collateral_peth_value(self):
-        return Decimal(self.tub.ink(self.cup_id))
+        if self.cup_id is None:
+            return Decimal(0)
+        else:
+            return Decimal(self.tub.ink(self.cup_id))
 
     # abstract collateral price
     @cached_property
@@ -177,7 +180,10 @@ class Dapp(SLDapp):
 
     @cached_property
     def debt_value(self):
-        return Decimal(self.tub.tab(self.cup_id))
+        if self.cup_id is None:
+            return Decimal(0)
+        else:
+            return Decimal(self.tub.tab(self.cup_id))
 
     @cached_property
     def global_dai_available(self):
@@ -270,7 +276,10 @@ class Dapp(SLDapp):
 
     def projected_liquidation_price(self, debt_value_change, eth_collateral_change):
         #projected_eth_collateral = self.collateral_eth_value(cup_id) + eth_to_deposit * self.WAD
-        return self.liquidation_price(self.debt_value + debt_value_change, self.collateral_eth_value + eth_collateral_change * self.WAD)
+        if self.cup_id is None:
+            return self.liquidation_price(debt_value_change, eth_collateral_change * self.WAD)
+        else:
+            return self.liquidation_price(self.debt_value + debt_value_change, self.collateral_eth_value + eth_collateral_change * self.WAD)
 
 
 

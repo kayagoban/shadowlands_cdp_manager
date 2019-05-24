@@ -23,7 +23,11 @@ class FreeEthFrame(SLFrame):
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
         self.add_label(self.projected_collateralization_ratio)
-        self.add_ok_cancel_buttons(self.free_eth_choice, ok_text="Free ETH")
+        #self.add_ok_cancel_buttons(self.free_eth_choice, ok_text="Free ETH")
+        self.add_button_row([
+            ("Free ETH", self.free_eth_choice, 0),
+            ("Back", self.close, 1)
+        ])
 
     def free_eth_choice(self):
         if self.deposit_eth_value() == Decimal(0.0):

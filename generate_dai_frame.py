@@ -23,7 +23,10 @@ class GenerateDaiFrame(SLFrame):
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
         self.add_label(self.projected_collateralization_ratio)
-        self.add_ok_cancel_buttons(self.generate_dai_choice, ok_text="Generate DAI")
+        self.add_button_rows([
+            ("Generate DAI", self.generate_dai_choice, 0),
+            ("Back", self.close, 1)
+        ])
 
     def generate_dai_choice(self):
         if self.deposit_eth_value() == Decimal(0.0):
