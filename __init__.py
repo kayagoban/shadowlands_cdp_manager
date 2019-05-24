@@ -91,7 +91,7 @@ class Dapp(SLDapp):
         # No registered cup id according to web api.
         # NOTE There *should* be a way to get cup ID onchain. 
         if len(response) == 0:
-            self.add_frame(OpenCDPFrame, 18, 56, title="Open New CDP")
+            self.add_frame(OpenCDPFrame, 24, 56, title="Open New CDP")
         else:
             self.cup_id = response[0]['id']
             lad = response[0]['lad']
@@ -271,15 +271,11 @@ class Dapp(SLDapp):
     #    return self.collateralization_ratio(projected_peth_value, self.debt_value(cup_id))
 
     def projected_collateralization_ratio(self, debt_value_change, eth_collateral_change):
-        #projected_peth_value = self.collateral_peth_value(cup_id) + eth_to_deposit * self.WAD / self.peth_price()
         return self.collateralization_ratio(self.collateral_peth_value + (eth_collateral_change * self.WAD / self.peth_price), self.debt_value + debt_value_change)
 
     def projected_liquidation_price(self, debt_value_change, eth_collateral_change):
-        #projected_eth_collateral = self.collateral_eth_value(cup_id) + eth_to_deposit * self.WAD
-        if self.cup_id is None:
-            return self.liquidation_price(debt_value_change, eth_collateral_change * self.WAD)
-        else:
-            return self.liquidation_price(self.debt_value + debt_value_change, self.collateral_eth_value + eth_collateral_change * self.WAD)
+        #debug(); pdb.set_trace()
+        return self.liquidation_price(self.debt_value + debt_value_change, self.collateral_eth_value + eth_collateral_change * self.WAD)
 
 
 

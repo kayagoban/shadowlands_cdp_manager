@@ -20,7 +20,13 @@ class OpenCDPFrame(SLFrame):
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
-        self.add_label(self.projected_collateralization_ratio)
+        self.add_label(self.projected_collateralization_ratio())
+        self.add_label("Minimum ratio:", add_divider=False)
+        self.add_label(str(self.dapp.liquidation_ratio * 100)[0:6] + " %")
+        self.add_label("Liquidation Penalty:", add_divider=False)
+        self.add_label(str(self.dapp.liquidation_penalty)[0:6] + " %")
+
+
         self.add_button_row(
             [
                 ("Open CDP", self.open_cdp, 0),
@@ -37,16 +43,33 @@ class OpenCDPFrame(SLFrame):
         except (TypeError, InvalidOperation):
             return Decimal(0.0)
 
+
+    def dai_value_string(self):
+        return str(self.dai_value())
+
+    def dai_value(self):
+        try:
+            return Decimal(self.dai_withdrawal_value() )
+        except (TypeError, InvalidOperation):
+            return Decimal(0.0)
+
+
     def projected_collateralization_ratio(self):
         try:
-            return str(self.dapp.projected_collateralization_ratio(0,  self.deposit_eth_value()))[0:8]
+            c_ratio = self.dapp.projected_collateralization_ratio(self.dai_value(),  self.deposit_eth_value())
+            if c_ratio == 0:
+                return "Undefined"
+            return str(c_ratio / self.dapp.WAD)[0:8]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 
 
     def projected_liquidation_price(self):
         try:
-            return str(self.dapp.projected_liquidation_price(0, self.deposit_eth_value()))[0:8]
+            l_price = self.dapp.projected_liquidation_price(self.dai_value(), self.deposit_eth_value())
+            if l_price == 0:
+                return "Undefined"
+            return str(l_price * self.dapp.WAD)[0:8]
         except (decimal.InvalidOperation):
             return "Undefined"
 
