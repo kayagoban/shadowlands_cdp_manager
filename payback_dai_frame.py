@@ -54,18 +54,14 @@ class PaybackDaiFrame(SLFrame):
     def uniswap_to_buy_value(self):
         return Decimal(self.stability_fee()) + Decimal(self.stability_fee()) * Decimal(0.01)
 
-    def fee_radio_button(self):
-        return "MKR"
-
     def stability_fee_label(self):
-        return "Stability fee({}):".format(self.fee_radio_button())
+        return "Stability fee(MKR):"
 
     def stability_fee(self):
         try:
-            if self.fee_radio_button() == 'MKR':
-                fee = self.dapp.proportional_stability_fee(
-                    self.deposit_eth_value()
-                ) 
+            fee = self.dapp.proportional_stability_fee(
+                self.deposit_eth_value()
+            ) 
 
             if fee == Decimal('0'):
                 return "0"
@@ -81,7 +77,7 @@ class PaybackDaiFrame(SLFrame):
             return
 
         # check to see if token spending is unlocked for contract
-        fee_denomination = self.fee_radio_button()
+        fee_denomination = 'MKR'
 
         if fee_denomination == 'MKR':
             fee_erc20_contract = self.dapp.mkr

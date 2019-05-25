@@ -5,6 +5,7 @@ import decimal
 from shadowlands.tui.debug import debug
 from cdp_manager.lock_eth_frame import LockEthFrame
 from cdp_manager.cdp_status_frame import CDPStatusFrame
+from cdp_manager.contracts.ds_proxy import DsProxy
 import pdb
 
 
@@ -74,18 +75,48 @@ class OpenCDPFrame(SLFrame):
 
 
     def open_cdp(self):
-        #try:
-        self.dapp.add_transaction_dialog(
-            self.dapp.sai_proxy.createOpenLockAndDraw(
-                self.dapp.proxy_registry.address, 
-                self.dapp.tub.address, 
-                self.dai_withdrawal_value()
-            ),
-            title="Open CDP",
-            gas_limit=980000,
-            tx_value=Decimal(self.eth_deposit_value()),
-        )
+        # No current CDP open, but do we have a proxy ready for us?
+        ds_proxy = self.dapp.proxy_registry.proxies(self.dapp.node.credstick.address)
+        if ds_proxy is None:
+            self.dapp.add_transaction_dialog(
+                self.dapp.sai_proxy.createOpenLockAndDraw(
+                    self.dapp.proxy_registry.address, 
+                    self.dapp.tub.address, 
+                    self.dai_withdrawal_value()
+                ),
+                title="Open CDP",
+                gas_limit=980000,
+                tx_value=Decimal(self.eth_deposit_value()),
+            )
+        else:
+            ds_proxy = DsProxy(self.dapp.node, address=ds_proxy)
+            #we send ds_proxy the createOpenLockAndDraw
+            #debug(); pdb.set_trace()
+            self.dapp.add_transaction_dialog(
+                ds_proxy.create_open_lock_and_draw(
+                    self.dapp.sai_proxy.address,
+                    self.dapp.proxy_registry.address, 
+                    self.dapp.tub.address, 
+                    self.dai_withdrawal_value()
+                ),
+                title="Open CDP",
+                gas_limit=980000,
+                tx_value=Decimal(self.eth_deposit_value()),
+            )
+ 
 
+            # we can send openLockAndDraw to the sai proxy
+            # Let's make a proxy.
+            #self.dapp.add_transaction_dialog(
+            #    self.proxy_registry.build(),
+            #    title="Create CDP proxy",
+            #    gas_limit=805000
+            #)
+            #self.add_message_dialog("Step 1: create proxy to own CDP")
+
+
+        
+        #try:
         #self.dapp.add_transaction_dialog(
         #    self.dapp.sai_proxy.createOpenLockAndDraw(
         #        self.dapp.proxy_registry.address, 

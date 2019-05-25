@@ -59,6 +59,7 @@ class Dapp(SLDapp):
             self.add_message_dialog("This Dapp only functions on the Ethereum MainNet and Kovan")
             return
        
+        #debug(); pdb.set_trace()
         self.show_wait_frame("Querying Maker's Web API for CDP ID...")
 
         self.cup_id = None
@@ -78,7 +79,6 @@ class Dapp(SLDapp):
         self.proxy_registry = ProxyRegistry(self.node)
         self.sai_proxy = SaiProxy(self.node)
         self.erc20_contract = { 'DAI': self.dai, 'PETH': self.peth }
-
 
         try:
             response = self.getCdpId(self.node.credstick.address)  
@@ -233,10 +233,6 @@ class Dapp(SLDapp):
         compounded_fee = (pow(fee / self.RAY, seconds_per_year) - 1) * 100
         return round(Decimal(compounded_fee), 2)
 
-    @cached_property
-    def mkr_stability_fee(self):
-        return self.stability_fee / self.pep.mkr_price()
-
     # fee for this particular cdp
     @cached_property
     def cdp_stability_fee(self):
@@ -244,11 +240,16 @@ class Dapp(SLDapp):
 
     @cached_property
     def mkr_cdp_stability_fee(self):
-        return self.cdp_stability_fee / self.mkr_price()
+        return self.cdp_stability_fee / self.mkr_price
 
     # Takes and returns non WAD human units for payback amount
     def proportional_stability_fee(self, payback_amount):
         return (Decimal(payback_amount) * self.WAD / self.debt_value) * self.cdp_stability_fee / self.WAD
+
+    @property
+    def mkr_stability_fee(self):
+        return self.stability_fee / self.mkr_price
+
 
     @property
     def cdp_collateralization_ratio(self):
