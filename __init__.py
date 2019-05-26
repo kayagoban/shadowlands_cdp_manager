@@ -91,6 +91,13 @@ class Dapp(SLDapp):
         # No registered cup id according to web api.
         # NOTE There *should* be a way to get cup ID onchain. 
         if len(response) == 0:
+            ds_proxy = self.proxy_registry.proxies(self.node.credstick.address)
+            if ds_proxy is not None:
+                self.add_message_dialog("Open a new CDP with Maker's web CDP portal, then come back.")
+                self.add_message_dialog("This tool cannot reopen a closed CDP.")
+                return
+
+
             self.add_frame(OpenCDPFrame, 24, 56, title="Open New CDP")
         else:
             self.cup_id = response[0]['id']

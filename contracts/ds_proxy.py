@@ -117,9 +117,9 @@ class DsProxy(Contract):
         fn = self.functions.execute(proxy_addr, payload)
         return fn
 
-    def create_open_lock_and_draw(self, proxy_addr, registry_addr, tub_addr, amount):
+    def lock_and_draw(self, proxy_addr, registry_addr, tub_addr, amount):
         calldata = Calldata.from_signature(
-	    "createOpenLockAndDraw(address,address,uint256)",
+	    "LockAndDraw(address,address,uint256)",
 	    [
                 registry_addr,
 		tub_addr,

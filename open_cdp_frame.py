@@ -13,6 +13,7 @@ import pdb
 class OpenCDPFrame(SLFrame):
 
     def initialize(self):
+ 
         self.add_label("This address does not yet have a CDP registered.")
         self.eth_deposit_value = self.add_textbox("ETH to deposit:", default_value='')
         self.dai_withdrawal_value = self.add_textbox("DAI to generate:", default_value='')
@@ -76,8 +77,7 @@ class OpenCDPFrame(SLFrame):
 
     def open_cdp(self):
         # No current CDP open, but do we have a proxy ready for us?
-        ds_proxy = self.dapp.proxy_registry.proxies(self.dapp.node.credstick.address)
-        if ds_proxy is None:
+        if self.ds_proxy is None:
             self.dapp.add_transaction_dialog(
                 self.dapp.sai_proxy.createOpenLockAndDraw(
                     self.dapp.proxy_registry.address, 
@@ -89,48 +89,22 @@ class OpenCDPFrame(SLFrame):
                 tx_value=Decimal(self.eth_deposit_value()),
             )
         else:
-            ds_proxy = DsProxy(self.dapp.node, address=ds_proxy)
-            #we send ds_proxy the createOpenLockAndDraw
-            #debug(); pdb.set_trace()
-            self.dapp.add_transaction_dialog(
-                ds_proxy.create_open_lock_and_draw(
-                    self.dapp.sai_proxy.address,
-                    self.dapp.proxy_registry.address, 
-                    self.dapp.tub.address, 
-                    self.dai_withdrawal_value()
-                ),
-                title="Open CDP",
-                gas_limit=980000,
-                tx_value=Decimal(self.eth_deposit_value()),
-            )
- 
-
-            # we can send openLockAndDraw to the sai proxy
-            # Let's make a proxy.
+            pass
+            #ds_proxy = DsProxy(self.dapp.node, address=ds_proxy)
             #self.dapp.add_transaction_dialog(
-            #    self.proxy_registry.build(),
-            #    title="Create CDP proxy",
-            #    gas_limit=805000
+            #    ds_proxy.create_open_lock_and_draw(
+            #        self.dapp.sai_proxy.address,
+            #        self.dapp.proxy_registry.address, 
+            #        self.dapp.tub.address, 
+            #        self.dai_withdrawal_value()
+            #    ),
+            #    title="Open CDP",
+            #    gas_limit=980000,
+            #    tx_value=Decimal(self.eth_deposit_value()),
             #)
-            #self.add_message_dialog("Step 1: create proxy to own CDP")
-
-
-        
-        #try:
-        #self.dapp.add_transaction_dialog(
-        #    self.dapp.sai_proxy.createOpenLockAndDraw(
-        #        self.dapp.proxy_registry.address, 
-        #        self.dapp.tub.address, 
-        #        self.dai_withdrawal_value()
-        #    ),
-        #    title="Open CDP",
-        #    gas_limit=968650,
-        #    tx_value=Decimal(self.eth_deposit_value())
-        #)
 
         self.close()
-        #except:
-        #    self.dapp.add_message_dialog("An error occured opening your CDP")
+        
 
     def process_receipt(self, rxo):
         #debug(); pdb.set_trace()
