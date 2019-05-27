@@ -19,7 +19,7 @@ class PaybackDaiFrame(SLFrame):
         self.add_label("How much DAI would you like to pay back?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='')
         self.add_label("Outstanding DAI debt:", add_divider=False)
-        self.add_label(str(self.dapp.debt_value / self.dapp.WAD)[0:10])
+        self.add_label(str(self.dapp.debt_value / self.dapp.WAD)[0:12])
 
         #options = [
         #    ('Pay stability fee with MKR', 'MKR'),
@@ -66,7 +66,7 @@ class PaybackDaiFrame(SLFrame):
             if fee == Decimal('0'):
                 return "0"
 
-            return str(fee)[0:10]
+            return str(fee)[0:12]
         except DivisionByZero:
             return ""
 
@@ -141,13 +141,13 @@ class PaybackDaiFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(round(self.dapp.projected_liquidation_price(-1 * self.dapp.WAD * self.deposit_eth_value(), 0), 4))
+            return str(self.dapp.projected_liquidation_price(-1 * self.dapp.WAD * self.deposit_eth_value(), 0))[0:12]
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(round(self.dapp.projected_collateralization_ratio(-1 * self.dapp.WAD * self.deposit_eth_value(), 0), 4))
+            return str(self.dapp.projected_collateralization_ratio(-1 * self.dapp.WAD * self.deposit_eth_value(), 0))[0:12]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 

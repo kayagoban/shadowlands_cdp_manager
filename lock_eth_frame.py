@@ -18,7 +18,7 @@ class LockEthFrame(SLFrame):
         self.add_label("How much ETH would you like to deposit?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("ETH Value:", default_value='1')
         self.add_label("Current account balance (ETH):", add_divider=False)
-        self.add_label(str(self.dapp.node.eth_balance)[0:8])
+        self.add_label(str(self.dapp.node.eth_balance)[0:12])
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
@@ -69,13 +69,13 @@ class LockEthFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(self.dapp.projected_liquidation_price(0, self.deposit_eth_value()))[0:8]
+            return str(self.dapp.projected_liquidation_price(0, self.deposit_eth_value()))[0:12]
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(self.dapp.projected_collateralization_ratio(0,  self.deposit_eth_value()))[0:8]
+            return str(self.dapp.projected_collateralization_ratio(0,  self.deposit_eth_value()))[0:12]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 

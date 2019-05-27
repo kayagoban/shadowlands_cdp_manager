@@ -18,7 +18,7 @@ class FreeEthFrame(SLFrame):
         self.add_label("How much ETH would you like to free?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("ETH Value:", default_value='')
         self.add_label("Max ETH available to withdraw:", add_divider=False)
-        self.add_label(str(self.dapp.eth_available_to_withdraw)[0:8])
+        self.add_label(str(self.dapp.eth_available_to_withdraw)[0:12])
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
@@ -67,13 +67,13 @@ class FreeEthFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(round(self.dapp.projected_liquidation_price(0, -1 * self.deposit_eth_value()), 4))
+            return str(self.dapp.projected_liquidation_price(0, -1 * self.deposit_eth_value()))[0:12]
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(round(self.dapp.projected_collateralization_ratio(0,  -1 * self.deposit_eth_value()), 4))
+            return str(self.dapp.projected_collateralization_ratio(0,  -1 * self.deposit_eth_value()))[0:12]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 

@@ -18,22 +18,21 @@ class GenerateDaiFrame(SLFrame):
         self.add_label("How much DAI would you like to generate?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='')
         self.add_label("Current account balance (ETH):", add_divider=False)
-        self.add_label(str(self.dapp.dai_available_to_generate)[0:10])
+        self.add_label(str(self.dapp.dai_available_to_generate)[0:12])
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
         self.add_label("Projected collateralization ratio:", add_divider=False)
         self.add_label(self.projected_collateralization_ratio)
-        self.add_button_rows([
-            ("Generate DAI", self.generate_dai_choice, 0),
-            ("Back", self.close, 1)
-        ])
+        self.add_button_row([
+            ("Borrow DAI", self.generate_dai_choice, 1),
+            ("Back", self.close, 2)
+        ], layout=[1, 1, 1])
 
     def generate_dai_choice(self):
         if self.deposit_eth_value() == Decimal(0.0):
             self.dapp.add_message_dialog("0 is not a valid choice")
             return
 
-        #debug(); pdb.set_trace()
         
         self.dapp.add_transaction_dialog(
             self.dapp.ds_proxy.draw(
@@ -50,29 +49,17 @@ class GenerateDaiFrame(SLFrame):
         return
  
 
-        #self.dapp.add_transaction_dialog(
-        #    self.dapp.ds_proxy.lock(
-        #        self.dapp.tub.address, 
-        #        self.dapp.cup_id, 
-        #        self.deposit_eth_value()
-        #    ),
-        #    tx_value=self.deposit_eth_value(),
-        #    title="Lock Collateral",
-        #    gas_limit=230000,
-        #)
- 
-        #self.dapp.lock_eth(self.dapp.cup_id, self.deposit_eth_value())
         self.close()
 
     def projected_liquidation_price(self):
         try:
-            return str(self.dapp.projected_liquidation_price(self.deposit_eth_value() * self.dapp.WAD, 0))[0:8]
+            return str(self.dapp.projected_liquidation_price(self.deposit_eth_value() * self.dapp.WAD, 0))[0:12]
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(self.dapp.projected_collateralization_ratio(self.deposit_eth_value() * self.dapp.WAD, 0))[0:8]
+            return str(self.dapp.projected_collateralization_ratio(self.deposit_eth_value() * self.dapp.WAD, 0))[0:12]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 
