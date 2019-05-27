@@ -117,11 +117,10 @@ class DsProxy(Contract):
         fn = self.functions.execute(proxy_addr, payload)
         return fn
 
-    def lock_and_draw(self, proxy_addr, registry_addr, tub_addr, amount):
+    def lock_and_draw(self, proxy_addr, tub_addr, amount):
         calldata = Calldata.from_signature(
-	    "LockAndDraw(address,address,uint256)",
+	    "lockAndDraw(address,uint256)",
 	    [
-                registry_addr,
 		tub_addr,
                 self.toWei(amount, 'ether')
             ]
