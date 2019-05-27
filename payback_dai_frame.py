@@ -72,6 +72,7 @@ class PaybackDaiFrame(SLFrame):
 
 
     def wipe_dai_choice(self):
+
         if self.deposit_eth_value() == Decimal(0.0):
             self.dapp.add_message_dialog("0 is not a valid choice")
             return
@@ -84,25 +85,27 @@ class PaybackDaiFrame(SLFrame):
         elif fee_denomination == 'DAI':
             fee_erc20_contract = self.dapp.dai
 
-        allowance = fee_erc20_contract.allowance(
-            self.dapp.node.credstick.address, 
-            self.dapp.ds_proxy.address
-        )
-        
-        if allowance == 0:
-            self.dapp.add_transaction_dialog(
-                fee_erc20_contract.approve(
-                    self.dapp.ds_proxy.address, 
-                    self.dapp.MAX_WEI
-                ),
-                title="Allow cdp proxy to send {}".format(fee_denomination),
-                gas_limit=50000,
+
+        for erc in [('MKR', self.dapp.mkr), ('DAI', self.dapp.dai)]:
+            allowance = erc[1].allowance(
+                self.dapp.node.credstick.address, 
+                self.dapp.ds_proxy.address
             )
-            self.dapp.add_message_dialog(
-                "First we must allow the CDP proxy to send {}".format(fee_denomination)
-            )
-            self.close()
-            return
+            
+            if allowance == 0:
+                self.dapp.add_transaction_dialog(
+                    erc[1].approve(
+                        self.dapp.ds_proxy.address, 
+                        self.dapp.MAX_WEI
+                    ),
+                    title="Allow cdp proxy to send {}".format(erc[0]),
+                    gas_limit=50000,
+                )
+                self.dapp.add_message_dialog(
+                    "We must allow the CDP proxy to send {}".format(erc[0])
+                )
+                self.close()
+                return
 
         # check to see if user actually has enough tokens to pay fee
         #debug(); pdb.set_trace()
