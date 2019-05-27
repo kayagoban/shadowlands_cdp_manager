@@ -25,9 +25,9 @@ class OpenCDPFrame(SLFrame):
         self.add_label(self.projected_collateralization_ratio)
 
         self.add_label("Minimum ratio:", add_divider=False)
-        self.add_label(str(self.dapp.liquidation_ratio * 100)[0:6] + " %")
+        self.add_label(str(self.dapp.liquidation_ratio * 100)[0:8] + " %")
         self.add_label("Liquidation Penalty:", add_divider=False)
-        self.add_label(str(self.dapp.liquidation_penalty)[0:6] + " %")
+        self.add_label(str(self.dapp.liquidation_penalty)[0:8] + " %")
 
         self.add_button_row(
             [
@@ -60,7 +60,7 @@ class OpenCDPFrame(SLFrame):
             c_ratio = self.dapp.projected_collateralization_ratio(self.dai_value(),  self.deposit_eth_value())
             if c_ratio == 0:
                 return "Undefined"
-            return str(c_ratio / self.dapp.WAD)[0:8]
+            return str(c_ratio / self.dapp.WAD)[0:12]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 
@@ -70,8 +70,8 @@ class OpenCDPFrame(SLFrame):
             l_price = self.dapp.projected_liquidation_price(self.dai_value(), self.deposit_eth_value())
             if l_price == 0:
                 return "Undefined"
-            return str(l_price * self.dapp.WAD)[0:8]
-        except (decimal.InvalidOperation):
+            return str(l_price * self.dapp.WAD)[0:12]
+        except (decimal.InvalidOperation, decimal.DivisionByZero):
             return "Undefined"
 
 
