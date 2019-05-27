@@ -1,8 +1,5 @@
 from shadowlands.sl_dapp import SLDapp, SLFrame, ExitDapp
 
-#import random, string
-#from datetime import datetime, timedelta
-
 from shadowlands.credstick import DeriveCredstickAddressError
 from decimal import Decimal
 from shadowlands.contract import ContractConfigError
@@ -11,12 +8,6 @@ import pdb
 import requests
 import threading
 
-#from ens_manager.contracts.ens_resolver import EnsResolver
-#from ens_manager.contracts.ens_auction import EnsAuction
-#from ens_manager.contracts.ens_registry import EnsRegistry
-#from ens_manager.contracts.ens_reverse_resolver import EnsReverseResolver
-
-#from ens_manager.status_frame import ENSStatusFrame
 from cdp_manager.contracts.sai_pip import SaiPip
 from cdp_manager.contracts.sai_pep import SaiPep
 from cdp_manager.contracts.sai_pit import SaiPit
@@ -50,23 +41,15 @@ class Dapp(SLDapp):
 
     # It's a maxed out uint256
     MAX_WEI = (2 ** 256) - 1 
-    #'0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-
-    #debug(); pdb.set_trace()
 
     def initialize(self):
         if self.node.network_name not in ["MainNet", "Kovan"]:
             self.add_message_dialog("This Dapp only functions on the Ethereum MainNet and Kovan")
             return
        
-        #debug(); pdb.set_trace()
         self.show_wait_frame("Querying Maker's Web API for CDP ID...")
-
         self.cup_id = None
-
-        #self._open_cdp_worker()
         threading.Thread(target=self._open_cdp_worker).start()
-
 
     def _open_cdp_worker(self):
         self.tub = SaiTub(self.node)
@@ -103,11 +86,6 @@ class Dapp(SLDapp):
 
             self.ds_proxy = DsProxy(self.node, address=lad)
             self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
-
-            #ds_proxy_addr =  self.proxy_registry.proxies(self.recipient_addr_value())
-            #if ds_proxy_addr is None:
-                #    pass
-
 
     def _migrate_cdp_at(self, lad):
         # If a proxy exists, give.
@@ -263,64 +241,25 @@ class Dapp(SLDapp):
     def liquidation_price(self, debt_value, collateral_eth_value):
         return debt_value * self.liquidation_ratio / collateral_eth_value
 
-    # lock Eth estimate methods
-    #def projected_liquidation_price(self, cup_id, eth_to_deposit):
-    #    projected_eth_collateral = self.collateral_eth_value(cup_id) + eth_to_deposit * self.WAD
-    #    return self.liquidation_price(self.debt_value(cup_id), projected_eth_collateral)
-
-    #def projected_collateralization_ratio(self, cup_id, eth_to_deposit):
-    #    projected_peth_value = self.collateral_peth_value(cup_id) + eth_to_deposit * self.WAD / self.peth_price()
-    #    return self.collateralization_ratio(projected_peth_value, self.debt_value(cup_id))
-
     def projected_collateralization_ratio(self, debt_value_change, eth_collateral_change):
         return self.collateralization_ratio(self.collateral_peth_value + (eth_collateral_change * self.WAD / self.peth_price), self.debt_value + debt_value_change)
 
     def projected_liquidation_price(self, debt_value_change, eth_collateral_change):
-        #debug(); pdb.set_trace()
         return self.liquidation_price(self.debt_value + debt_value_change, self.collateral_eth_value + eth_collateral_change * self.WAD)
-
-
 
 
     # lock Eth methods
 
     def lock_peth(self, cdp_id, amount):
-        #self.require_allowance('PETH', self.tub._contract.address, amount)
         self.add_transaction_dialog(self.tub.lock(cdp_id, amount), gas_limit=100000)
-        #self.tub.lock(cdp_id, amount)
 
     def lock_weth(self, cdp_id, amount):
-        #self.converter.weth2peth(amount)
         return self.lock_peth(cdp_id, amount)
 
     def lock_eth(self, cdp_id, amount):
-        #self.converter.eth2weth(amount)
         self.lock_weth(cdp_id, amount)
 
     def lock(self):
         debug(); pdb.set_trace()
         self.lock_eth(self.cup_id, 0.05)
-
-
-
-    def report(self):
-        print("liquidation price: $", round(self.cdp_liquidation_price(cup_id), 3))
-        print("ether price: $", self.ether_price())
-        print("liquidation penalty: ", self.liquidation_penalty(), "%")
-        print("collateralization ratio: ", self.cdp_collateralization_ratio(cup_id), "%")
-        print("collateral peth value: PETH", round(self.node.w3.fromWei(self.collateral_peth_value(cup_id) , 'ether'), 3))
-        print("collateral eth value: ETH", round(self.node.w3.fromWei(self.collateral_eth_value(cup_id), 'ether'), 3))
-        print("yearly stability fee: ", self.stability_fee(), "%")
-        print("CDP eth value: $", round( Decimal(self.pip.eth_price() / self.WAD) * self.node.w3.fromWei(self.collateral_eth_value(cup_id), 'ether'), 3) )
-        print("global dai available: DAI ", round(self.global_dai_available() / self.WAD) )
-        print("max available to withdraw PETH ", round(self.peth_available_to_withdraw(cup_id), 3) )
-        print("max available to withdraw ETH ", round(self.eth_available_to_withdraw(cup_id), 3) )
-        print("max available to withdraw value $", round(self.eth_available_to_withdraw(cup_id) * Decimal(self.pip.eth_price()) / self.WAD, 2))
-        print("dai generated by cdp: DAI ", round(self.tub.tab(cup_id) / self.WAD, 2))
-        print("max dai available to generate: DAI ", round(self.dai_available_to_generate(cup_id), 3))
-        print("global CDP collateralization ratio: ", round(self.system_collateralization_ratio(), 4) )
-        print("MKR price:  USD ", round(self.pep.mkr_price() / self.WAD, 3))
-        debug(); pdb.set_trace()
-
-
 

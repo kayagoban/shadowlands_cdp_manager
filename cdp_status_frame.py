@@ -1,7 +1,6 @@
 from shadowlands.sl_dapp import SLFrame
 import decimal
 from decimal import Decimal
-#from decimal import DivisionUndefined
 
 from shadowlands.tui.debug import debug
 from cdp_manager.lock_eth_frame import LockEthFrame
@@ -10,8 +9,6 @@ from cdp_manager.generate_dai_frame import GenerateDaiFrame
 from cdp_manager.free_eth_frame import FreeEthFrame
 from cdp_manager.close_cdp_frame import CloseCDPFrame
 from cdp_manager.give_cdp_frame import GiveCDPFrame
-# from concurrent.futures._base import TimeoutError
-
 
 import pdb
 
@@ -20,19 +17,15 @@ class CDPStatusFrame(SLFrame):
 
     def lock_eth_frame(self):
         self.dapp.add_frame(LockEthFrame, 15, 50, title="Deposit Collateral")
-        #self.close()
 
     def free_eth_frame(self):
         self.dapp.add_frame(FreeEthFrame, 15, 50, title="Free Collateral")
-        #self.close()
 
     def payback_dai_frame(self):
         self.dapp.add_frame(PaybackDaiFrame, 18, 50, title="Pay back DAI")
-        #self.close()
 
     def generate_dai_frame(self):
         self.dapp.add_frame(GenerateDaiFrame, 15, 50, title="Borrow DAI")
-        #self.close()
 
     def close_cdp_frame(self):
         self.dapp.add_frame(CloseCDPFrame, 11, 50, title="Close CDP")
@@ -69,14 +62,13 @@ class CDPStatusFrame(SLFrame):
             try:
                 del self.dapp.__dict__[cproperty]
             except KeyError:
+                # If property not yet cached, this will happen.
                 pass
 
         self.dapp.add_message_dialog("Refreshing stats.")
 
 
-
     def initialize(self):
-        #self.add_divider()
         
         try:
 
@@ -136,7 +128,6 @@ class CDPStatusFrame(SLFrame):
             )
             self.add_divider()
             self.add_divider(draw_line=True)
-            #self.add_divider()
             self.add_button_row(
                 [
                     ("Move CDP", self.move_cdp_frame, 0),
