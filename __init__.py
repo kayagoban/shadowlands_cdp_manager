@@ -7,6 +7,8 @@ from shadowlands.tui.debug import debug
 import pdb
 import requests
 import threading
+import json
+import logging
 
 from cdp_manager.contracts.sai_pip import SaiPip
 from cdp_manager.contracts.sai_pep import SaiPep
@@ -47,11 +49,12 @@ class Dapp(SLDapp):
             self.add_message_dialog("This Dapp only functions on the Ethereum MainNet and Kovan")
             return
        
-        self.show_wait_frame("Querying Maker's Web API for CDP ID...")
-        self.cup_id = None
-        threading.Thread(target=self._open_cdp_worker).start()
+        self.show_wait_frame("Querying Maker's GraphQL API for CDP ID...")
 
-    def _open_cdp_worker(self):
+        self.cup_id = None
+        self.ds_proxy = None
+        self.ds_proxy_address = None
+
         self.tub = SaiTub(self.node)
         self.vox = SaiVox(self.node)
         self.dai = Dai(self.node)
@@ -63,39 +66,49 @@ class Dapp(SLDapp):
         self.sai_proxy = SaiProxy(self.node)
         self.erc20_contract = { 'DAI': self.dai, 'PETH': self.peth }
 
+        #threading.Thread(target=self.open_cdp).start()
+        self.open_cdp()
+
+
+    def open_cdp(self):
+        self.ds_proxy_address = self.proxy_registry.proxies(self.node.credstick.address)
+
+        if self.ds_proxy_address is not None:
+            self.ds_proxy = DsProxy(self.node, address=self.ds_proxy_address)
+            try:
+                self.cup_id = self.find_cdp(self.ds_proxy_address)
+            except:
+                self.hide_wait_frame()
+                self.add_message_dialog("Could not contact GraphQL")
+                return
+
+            if self.cup_id is not None:
+                self.hide_wait_frame()
+                self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+                return
+
         try:
-            response = self.getCdpId(self.node.credstick.address)  
-        except (requests.exceptions.ConnectionError):
-            self.add_frame(CupIDPromptFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+            self.cup_id = self.find_cdp(self.node.credstick.address)
+        except:
+            self.hide_wait_frame()
+            self.add_message_dialog("Could not contact GraphQL")
+            return
+
+        if self.cup_id is not None:
+            self.hide_wait_frame()
+            self.migrate_cdp(self.node.credstick.address)
             return
 
         self.hide_wait_frame()
+        self.add_frame(OpenCDPFrame, 24, 56, title="Open New CDP")
 
-        # No registered cup id according to web api.
-        # NOTE There *should* be a way to get cup ID onchain. 
-        if len(response) == 0:
 
-            self.add_frame(OpenCDPFrame, 24, 56, title="Open New CDP")
-        else:
-            self.cup_id = response[0]['id']
-            lad = response[0]['lad']
-            # If we directly own the CDP, need to migrate.
-            if lad == self.node.credstick.address:
-                self._migrate_cdp_at(lad)
-                return
-
-            self.ds_proxy = DsProxy(self.node, address=lad)
-            self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
-
-    def _migrate_cdp_at(self, lad):
-        # If a proxy exists, give.
-        ds_proxy = self.proxy_registry.proxies(lad)
-        if ds_proxy is not None:
-            #debug(); pdb.set_trace()
+    def migrate_cdp(self, lad):
+        if self.ds_proxy_address is not None:
             self.add_transaction_dialog(
                 self.tub.give(
                     self.cup_id, 
-                    ds_proxy
+                    self.ds_proxy_address
                 ),
                 title="Set your proxy as CDP owner",
                 gas_limit=505000
@@ -112,12 +125,19 @@ class Dapp(SLDapp):
         self.add_message_dialog("Updating CDP to work with the new CDP portal.")
 
 
+    def find_cdp(self, address):
+        endpoint = "https://sai-mainnet.makerfoundation.com/v1"
+        data = 'query { allCups( condition: { lad: "' + address + '"  } ) { nodes { id, block, lad } } }' 
 
-    def getCdpId(self, address):
-        address = address
-        url = "https://mkr.tools/api/v1/lad/{}".format(address)
-        response = requests.get(url).json()
-        return response
+        response = requests.post(url = endpoint,headers={'Content-Type': 'application/graphql'}, data = data) 
+        gqldata = json.loads(response.text)
+
+        if gqldata['data']['allCups']['nodes'] == []:
+            return None
+        else:
+            logging.info("Found cdp for {}: {}".format(address, gqldata))
+            return gqldata['data']['allCups']['nodes'][0]['id']
+
 
     # cached properties, to save unnecessary queries of our dear friend infura
 

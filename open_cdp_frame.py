@@ -78,9 +78,7 @@ class OpenCDPFrame(SLFrame):
     def open_cdp(self):
         # No current CDP open, but do we have a proxy ready for us?
 
-        ds_proxy_address = self.dapp.proxy_registry.proxies(self.dapp.node.credstick.address)
-
-        if ds_proxy_address is None:
+        if self.ds_proxy_address is None:
             self.dapp.add_transaction_dialog(
                 self.dapp.sai_proxy.createOpenLockAndDraw(
                     self.dapp.proxy_registry.address, 
@@ -103,30 +101,7 @@ class OpenCDPFrame(SLFrame):
                 gas_limit=980000,
                 tx_value=Decimal(self.eth_deposit_value()),
             )
-
         self.close()
         
-
-    def process_receipt(self, rxo):
-        #debug(); pdb.set_trace()
-
-        if rxo.blockNumber == None:
-            # failure
-            self.dapp.add_message_dialog("Transaction {} failed.".format(rxo.transactionHash.hex()))
-
-        #id_hex = rxo.logs[1]['data']
-        #self.dapp.cup_id = int(id_hex, 16)
-
-        self.dapp.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.dapp.cup_id))
-        self.dapp.add_message_dialog("New CDP Created.")
-
-        
-    # open new cdp
-    
-    # send 'open' to tub
-    # const txo = await tubContract.open({ promise });
-
-    # parse cdp ID from tx log 
-    #   this.id = parseInt(txo.receipt.logs[1].data, 16);
 
 

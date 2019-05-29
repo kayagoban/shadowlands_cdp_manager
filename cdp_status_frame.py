@@ -32,7 +32,7 @@ class CDPStatusFrame(SLFrame):
         self.close()
 
     def move_cdp_frame(self):
-        self.dapp.add_frame(GiveCDPFrame, 20, 59, title="Transfer CDP to different address")
+        self.dapp.add_frame(GiveCDPFrame, 6, 59, title="Transfer CDP to different address")
         self.close()
 
     def refresh_info(self):
