@@ -1,4 +1,4 @@
-from shadowlands.contract.erc20 import Erc20
+from shadowlands.sl_contract.erc20 import Erc20
 from hexbytes import HexBytes
 from eth_utils import decode_hex
 
@@ -6,6 +6,9 @@ from shadowlands.tui.debug import debug
 import pdb
 
 class Peth(Erc20):
+    MAINNET="0xf53ad2c6851052a81b42133467480961b2321c09"
+    KOVAN='0xf4d791139cE033Ad35DB2B2201435fAd668B1b64'
+ 
     def to_sol_addr(self, address):
         return decode_hex(address.replace('0x',''))
 
@@ -16,9 +19,7 @@ class Peth(Erc20):
         return self.functions.totalSupply().call()
 
     def allowance(self, src, target):
-        #return self.functions.allowance(self.sol_addr(self._node.credstick.address), self.sol_addr(target)).call()
         debug(); pdb.set_trace()
-        #return self.functions.allowance(self.sol_addr(src), self.sol_addr(target)).call()
         response = self.functions.allowance(self.to_sol_addr(src), self.to_sol_addr(target)).call()
         return response
 
@@ -33,6 +34,4 @@ class Peth(Erc20):
         fn = self.functions.approve(solf.to_sol_addr(target), int(amount))
 
 
-    MAINNET="0xf53ad2c6851052a81b42133467480961b2321c09"
-    KOVAN='0xf4d791139cE033Ad35DB2B2201435fAd668B1b64'
-    
+   

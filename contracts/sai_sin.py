@@ -1,4 +1,4 @@
-from shadowlands.contract import Contract
+from shadowlands.sl_contract import SLContract
 from hexbytes import HexBytes
 
 from shadowlands.tui.debug import debug
@@ -8,7 +8,7 @@ import pdb
 #      { version: 1, address: addresses.PIT, abi: abis.daiV1.pit }
 # ],
 
-class SaiSin(Contract):
+class SaiSin(SLContract):
 
 #    def resolve(self, name):
 #        if not name.endswith(".eth"):

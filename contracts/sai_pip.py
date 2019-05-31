@@ -1,13 +1,12 @@
-from shadowlands.contract import Contract
+from shadowlands.sl_contract import SLContract
 from hexbytes import HexBytes
 from decimal import Decimal
 
 from shadowlands.tui.debug import debug
 import pdb
 
-# SAI_PIP: version: 1, address: addresses.PIP, abi: abis.dappHub.dsValue
 
-class SaiPip(Contract):
+class SaiPip(SLContract):
 
     def read(self):
         return self.functions.read().call()
@@ -17,22 +16,6 @@ class SaiPip(Contract):
         int_price = int.from_bytes(result, byteorder='big')
         return Decimal(int_price)
 
-#    def resolve(self, name):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#        _namehash = namehash(name)
-#        return self.functions.addr(_namehash).call()
-# 
-#
-#    def set_address(self, name, address_target):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#
-#        _namehash = namehash(name)
-#
-#        fn = self._contract.functions.setAddr(_namehash, HexBytes(address_target))
-#        return fn
- 
     MAINNET='0x729D19f657BD0614b4985Cf1D82531c67569197B'
     KOVAN='0xa944bd4b25c9f186a846fd5668941aa3d3b8425f'
     ABI='''

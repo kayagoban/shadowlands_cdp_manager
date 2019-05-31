@@ -1,14 +1,10 @@
-from shadowlands.contract import Contract
+from shadowlands.sl_contract import SLContract
 from hexbytes import HexBytes
 
 from shadowlands.tui.debug import debug
 import pdb
 
-# [contracts.SAI_PIT]: [
-#      { version: 1, address: addresses.PIT, abi: abis.daiV1.pit }
-# ],
-
-class SaiTub(Contract):
+class SaiTub(SLContract):
 
     def cup(self, cdp_id):
         return self.functions.cups(self.bytes32(cdp_id)).call()
@@ -50,37 +46,6 @@ class SaiTub(Contract):
     def give(self, cup_id, guy):
         return self.functions.give(self.bytes32(cup_id), guy)
 
-
-    #def lock(self, cdp_id, amount):
-    #    fn = self.functions.lock(
-    #        bytes32(cdp_id), 
-    #        self.toWei(amount, 'ether')
-    #    )
-    #    return fn
-
-    #def shut(self, cdp_id):
-    #    fn = self.functions.shut(
-    #        bytes32(cdp_id) 
-    #    )
-    #    return fn
-
-
-
-#    def resolve(self, name):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#        _namehash = namehash(name)
-#        return self.functions.addr(_namehash).call()
-# 
-#
-#    def set_address(self, name, address_target):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#
-#        _namehash = namehash(name)
-#
-#        fn = self._contract.functions.setAddr(_namehash, HexBytes(address_target))
-#        return fn
     MAINNET="0x448a5065aebb8e423f0896e6c5d525c040f59af3"
     KOVAN="0xa71937147b55Deb8a530C7229C442Fd3F31b7db2"
     ABI='''

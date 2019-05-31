@@ -1,4 +1,4 @@
-from shadowlands.contract.erc20 import Erc20
+from shadowlands.sl_contract.erc20 import Erc20
 from hexbytes import HexBytes
 
 from shadowlands.tui.debug import debug

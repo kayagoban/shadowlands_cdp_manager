@@ -1,4 +1,4 @@
-from shadowlands.contract import Contract
+from shadowlands.sl_contract import SLContract
 from hexbytes import HexBytes
 
 from shadowlands.tui.debug import debug
@@ -9,7 +9,7 @@ import pdb
 # ],
 
 NULL_ADDRESS = '0x0000000000000000000000000000000000000000'
-class ProxyRegistry(Contract):
+class ProxyRegistry(SLContract):
 
     def proxies(self, address):
         result = self.functions.proxies(address).call()

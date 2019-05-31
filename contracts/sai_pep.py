@@ -1,31 +1,14 @@
-from shadowlands.contract import Contract
+from shadowlands.sl_contract import SLContract
 from hexbytes import HexBytes
 from decimal import Decimal
 from shadowlands.tui.debug import debug
 import pdb
 
-# SAI_PEP: version: 1, address: addresses.PEP, abi: abis.dappHub.dsValue
-
-class SaiPep(Contract):
+class SaiPep(SLContract):
 
     def mkr_price(self):
         result = self.functions.peek().call()[0]
         return Decimal(int.from_bytes(result, byteorder='big'))
-#    def resolve(self, name):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#        _namehash = namehash(name)
-#        return self.functions.addr(_namehash).call()
-# 
-#
-#    def set_address(self, name, address_target):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#
-#        _namehash = namehash(name)
-#
-#        fn = self._contract.functions.setAddr(_namehash, HexBytes(address_target))
-#        return fn
  
     MAINNET='0x99041F808D598B782D5a3e498681C2452A31da08'
     KOVAN='0x02998f73fabb52282664094b0ff87741a1ce9030'

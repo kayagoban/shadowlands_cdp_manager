@@ -1,14 +1,10 @@
-from shadowlands.contract import Contract
+from shadowlands.sl_contract import SLContract
 from hexbytes import HexBytes
 
 from shadowlands.tui.debug import debug
 import pdb
 
-# [contracts.SAI_PIT]: [
-#      { version: 1, address: addresses.PIT, abi: abis.daiV1.pit }
-# ],
-
-class SaiProxy(Contract):
+class SaiProxy(SLContract):
 
     def createOpenLockAndDraw(self, registry, tub, loan_dai):
         #debug(); pdb.set_trace()
@@ -19,22 +15,6 @@ class SaiProxy(Contract):
         )
         return fn
 
-#    def resolve(self, name):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#        _namehash = namehash(name)
-#        return self.functions.addr(_namehash).call()
-# 
-#
-#    def set_address(self, name, address_target):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#
-#        _namehash = namehash(name)
-#
-#        fn = self._contract.functions.setAddr(_namehash, HexBytes(address_target))
-#        return fn
-    #MAINNET="0x190c2cfc69e68a8e8d5e2b9e2b9cc3332caff77b"
     MAINNET="0x526af336D614adE5cc252A407062B8861aF998F5"
     KOVAN="0xadb7c74bce932fc6c27dda3ac2344707d2fbb0e6"
     ABI='''

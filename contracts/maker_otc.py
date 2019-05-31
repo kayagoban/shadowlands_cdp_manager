@@ -1,30 +1,11 @@
-from shadowlands.contract import Contract
+from shadowlands.sl_contract import SLContract
 from hexbytes import HexBytes
 
 from shadowlands.tui.debug import debug
 import pdb
 
-# [contracts.SAI_PIT]: [
-#      { version: 1, address: addresses.PIT, abi: abis.daiV1.pit }
-# ],
+class MakerOtc(SLContract):
 
-class MakerOtc(Contract):
-
-#    def resolve(self, name):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#        _namehash = namehash(name)
-#        return self.functions.addr(_namehash).call()
-# 
-#
-#    def set_address(self, name, address_target):
-#        if not name.endswith(".eth"):
-#            name += '.eth'
-#
-#        _namehash = namehash(name)
-#
-#        fn = self._contract.functions.setAddr(_namehash, HexBytes(address_target))
-#        return fn
     MAINNET="0x39755357759ce0d7f32dc8dc45414cca409ae24e"
     KOVAN="0x4A6bC4e803c62081ffEbCc8d227B5a87a58f1F8F"
     ABI='''

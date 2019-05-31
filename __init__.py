@@ -2,7 +2,7 @@ from shadowlands.sl_dapp import SLDapp, SLFrame, ExitDapp
 
 from shadowlands.credstick import DeriveCredstickAddressError
 from decimal import Decimal
-from shadowlands.contract import ContractConfigError
+from shadowlands.sl_contract import ContractConfigError
 from shadowlands.tui.debug import debug
 import pdb
 import requests
