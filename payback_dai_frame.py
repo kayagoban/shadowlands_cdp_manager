@@ -46,6 +46,9 @@ class PaybackDaiFrame(SLFrame):
     # allow a choice of DAI vs. MKR to pay the fee.  
     # Hardcoded to MKR for now.
     def uniswap_to_buy_mkr_value(self):
+        if self.deposit_eth_value() == 0:
+            return Decimal(0)
+
         sfee = self.dapp.proportional_stability_fee( self.deposit_eth_value())
         return sfee + sfee * Decimal(0.01)
 
