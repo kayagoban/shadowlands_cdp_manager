@@ -82,7 +82,7 @@ class PaybackDaiFrame(SLFrame):
                 return ""
 
             return "{:f}".format(fee)[0:16] + " MKR"
-        except DivisionByZero:
+        except (DivisionByZero, InvalidOperation):
             return ""
 
 

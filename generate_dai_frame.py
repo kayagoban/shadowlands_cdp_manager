@@ -53,13 +53,22 @@ class GenerateDaiFrame(SLFrame):
 
     def projected_liquidation_price(self):
         try:
-            return str(self.dapp.projected_liquidation_price(self.deposit_eth_value() * self.dapp.WAD, 0))[0:12]
+            if self.deposit_eth_value() <= 0:
+                return "Undefined"
+            liq_price = self.dapp.projected_liquidation_price(self.deposit_eth_value() * self.dapp.WAD, 0)
+            if liq_price == 0:
+                return "Undefined"
+            else:
+                return "{:f}".format(liq_price)[0:12]
         except (decimal.InvalidOperation):
             return "Undefined"
 
     def projected_collateralization_ratio(self):
         try:
-            return str(self.dapp.projected_collateralization_ratio(self.deposit_eth_value() * self.dapp.WAD, 0))[0:12]
+            if self.deposit_eth_value() <= 0:
+                return "Undefined"
+            coll_ratio = self.dapp.projected_collateralization_ratio(self.deposit_eth_value() * self.dapp.WAD, 0) 
+            return "{:f}".format(coll_ratio)[0:12]
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 

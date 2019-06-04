@@ -65,9 +65,8 @@ class Dapp(SLDapp):
         self.proxy_registry = ProxyRegistry(self.node)
         self.sai_proxy = SaiProxy(self.node)
         self.erc20_contract = { 'DAI': self.dai, 'PETH': self.peth }
-
-        #threading.Thread(target=self.open_cdp).start()
-        self.open_cdp()
+        threading.Thread(target=self.open_cdp).start()
+        #self.open_cdp()
 
 
     def open_cdp(self):

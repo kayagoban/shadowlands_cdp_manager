@@ -12,7 +12,6 @@ from cdp_manager.give_cdp_frame import GiveCDPFrame
 
 import pdb
 
-
 class CDPStatusFrame(SLFrame):
 
     def lock_eth_frame(self):
@@ -68,14 +67,15 @@ class CDPStatusFrame(SLFrame):
         self.dapp.add_message_dialog("Refreshing stats.")
 
 
+    
+
     def initialize(self):
-        
         try:
 
             self.add_label_quad("Liq. Price:", 
-                                lambda: self.show_divisible(self.dapp.cdp_liquidation_price, 'USD'),
+                                lambda: self.show_divisible('cdp_liquidation_price', 'USD'),
                                 "Collat. Ratio:", 
-                                lambda: self.show_divisible(self.dapp.cdp_collateralization_ratio, '%'), 
+                                lambda: self.show_divisible('cdp_collateralization_ratio', '%'), 
                                 add_divider=False)
 
             self.add_label_quad("Current Price:", 
@@ -96,7 +96,7 @@ class CDPStatusFrame(SLFrame):
             self.add_label_quad("Deposited:", 
                                 lambda: self.show_number(self.dapp.collateral_eth_value / self.dapp.WAD, "ETH"),
                                 "Max available:", 
-                                lambda: self.show_divisible(self.dapp.eth_available_to_withdraw, "ETH"), 
+                                lambda: self.show_divisible('eth_available_to_withdraw', "ETH"), 
                                 add_divider=False)
 
             self.add_label_quad("", lambda: self.show_number(self.dapp.collateral_peth_value / self.dapp.WAD,"PETH"),
@@ -117,7 +117,7 @@ class CDPStatusFrame(SLFrame):
 
             self.add_label("DAI Position")
             self.add_label_quad("Generated:", lambda: self.show_number(self.dapp.debt_value / self.dapp.WAD, 'DAI'),
-                                "Max available:", lambda: self.show_divisible(self.dapp.dai_available_to_generate, 'DAI'), add_divider=False)
+                                "Max available:", lambda: self.show_divisible('dai_available_to_generate', 'DAI'), add_divider=False)
             self.add_divider(draw_line=False)
             self.add_button_row(
                 [
@@ -148,14 +148,31 @@ class CDPStatusFrame(SLFrame):
             display_value += " {}".format(denomination)
         return display_value
             
+    def p_fn(self, p_str):
+        '''
+        I got myself into a pickle trying to create a decorator
+        for cached properties.  This lets us execute the underlying
+        function when we feel like it.
+        '''
+        from cdp_manager.__init__ import Dapp
+        p_obj = Dapp.__dict__[p_str]
+        return p_obj.__get__(self.dapp, Dapp)
 
-    def show_divisible(self, number, denomination=None):
+
+    def show_divisible(self, fn, denomination=None):
+
         try:
+            if fn.__class__ == str:
+                number = self.p_fn(fn)
+            else:
+                number = fn()
+
+            if number == 0:
+                return "Undefined"
             divisible = str(number)[:8]
             if denomination is not None:
                 divisible += " {}".format(denomination)
             return divisible
-     
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             divisible = "Undefined" 
         return divisible
