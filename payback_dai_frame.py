@@ -18,11 +18,15 @@ class PaybackDaiFrame(SLFrame):
 
         self.add_label("How much DAI would you like to pay back?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='')
+        
         self.add_label("Outstanding DAI debt:", add_divider=False)
-        self.add_label("{:f}".format(self.dapp.debt_value / self.dapp.WAD)[0:16] + " DAI")
+        self.add_label_with_button(
+            "{:f}".format( self.debt_value())[0:16] + " DAI", "Get DAI", self.dai_uniswap_frame
+        )
 
         self.add_label(self.stability_fee_label, add_divider=False)
-        self.add_label(self.stability_fee)
+        self.add_label_with_button(self.stability_fee, "Get MKR", self.mkr_uniswap_frame)
+        #self.add_label(self.stability_fee)
 
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
@@ -31,15 +35,29 @@ class PaybackDaiFrame(SLFrame):
         self.add_button_row(
             [
                 ("Pay back DAI", self.wipe_dai_choice, 0),
-                ("Get MKR", self.uniswap_frame, 1),
+                #("Get MKR", self.uniswap_frame, 1),
                 ("Back", self.close, 2)
             ], 
             layout=[6, 5, 5]
         )
 
-    def uniswap_frame(self):
+    def debt_value(self):
+        try:
+            debt = self.dapp.debt_value / self.dapp.WAD 
+        except InvalidOperation:
+            return Decimal(0)
+
+        return debt
+                                   
+
+    def mkr_uniswap_frame(self):
         self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount=self.uniswap_to_buy_mkr_value())
         self.close()
+
+    def dai_uniswap_frame(self):
+        self.dapp.add_uniswap_frame(self.dapp.dai.address, action='buy', buy_amount=self.debt_value())
+        self.close()
+
 
 
     # This is a stand-in for an actual radio button, which would
@@ -48,12 +66,24 @@ class PaybackDaiFrame(SLFrame):
     def uniswap_to_buy_mkr_value(self):
         if self.deposit_eth_value() == 0:
             return Decimal(0)
-
         sfee = self.dapp.proportional_stability_fee( self.deposit_eth_value())
         return sfee + sfee * Decimal(0.01)
 
     def stability_fee_label(self):
         return "Stability fee(MKR):"
+
+    def stability_fee(self):
+        try:
+            fee = self.dapp.proportional_stability_fee(
+                self.deposit_eth_value()
+            ) 
+
+            if fee <= Decimal('0'):
+                return ""
+
+            return "{:f}".format(fee)[0:16] + " MKR"
+        except DivisionByZero:
+            return ""
 
 
     def wipe_dai_choice(self):
@@ -94,6 +124,7 @@ class PaybackDaiFrame(SLFrame):
 
         # check to see if user actually has enough tokens to pay fee
         #debug(); pdb.set_trace()
+
         try:
             bal = [x['balance'] for x in self.dapp.node.erc20_balances if x['name'] == fee_denomination][0]
         except:
@@ -123,19 +154,6 @@ class PaybackDaiFrame(SLFrame):
         )
         self.close()
  
-    def stability_fee(self):
-        try:
-            fee = self.dapp.proportional_stability_fee(
-                self.deposit_eth_value()
-            ) 
-
-            if fee <= Decimal('0'):
-                return ""
-
-            return "{:f}".format(fee)[0:16] + " MKR"
-        except DivisionByZero:
-            return ""
-
 
     def projected_liquidation_price(self):
         try:
