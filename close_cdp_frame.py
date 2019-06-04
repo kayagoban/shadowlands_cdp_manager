@@ -1,5 +1,5 @@
 from shadowlands.sl_dapp import SLFrame
-from decimal import Decimal, DivisionByZero
+from decimal import Decimal, DivisionByZero, InvalidOperation, DivisionUndefined
 
 from shadowlands.tui.debug import debug
 from cdp_manager.lock_eth_frame import LockEthFrame
@@ -22,19 +22,43 @@ class CloseCDPFrame(SLFrame):
 
         self.add_divider()
 
-        self.add_label_pair("Outstanding DAI:", str(self.dapp.debt_value / self.dapp.WAD)[0:18])
+        self.add_label("Outstanding debt:", add_divider=False)
+        self.add_label_with_button(
+            "{:f}".format( self.debt_value())[0:16] + " DAI", "Get DAI", self.dai_uniswap_frame
+        )
 
-        self.add_label_pair("Stability fee in MKR:", self.stability_fee)
+        self.add_label("Stability fee:", add_divider=False)
+        self.add_label_with_button(self.stability_fee, "Get MKR", self.mkr_uniswap_frame)
+
 
         self.add_button_row([
             ("Close CDP", self.close_cdp_choice, 0),
             ("Cancel", self.close, 1)
         ])
 
+    def debt_value(self):
+        try:
+            debt = self.dapp.debt_value / self.dapp.WAD
+        except (InvalidOperation, DivisionUndefined):
+            return Decimal(0)
+
+        return debt
+                                   
+    def dai_uniswap_frame(self):
+        self.dapp.add_uniswap_frame(self.dapp.dai.address, action='buy', buy_amount=self.debt_value())
+        self.close()
+
+    def mkr_uniswap_frame(self):
+        self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount=self.uniswap_to_buy_mkr_value())
+        self.close()
+
+    def uniswap_to_buy_mkr_value(self):
+        sfee = self.dapp.cdp_stability_fee / self.dapp.WAD
+        return sfee + sfee * Decimal(0.01)
 
     def stability_fee(self):
         try:
-            fee = self.dapp.cdp_stability_fee / self.dapp.WAD
+            fee = self.uniswap_to_buy_mkr_value()
 
             if fee == Decimal('0'):
                 return "0"

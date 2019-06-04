@@ -26,7 +26,6 @@ class PaybackDaiFrame(SLFrame):
 
         self.add_label(self.stability_fee_label, add_divider=False)
         self.add_label_with_button(self.stability_fee, "Get MKR", self.mkr_uniswap_frame)
-        #self.add_label(self.stability_fee)
 
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
@@ -50,19 +49,16 @@ class PaybackDaiFrame(SLFrame):
         return debt
                                    
 
-    def mkr_uniswap_frame(self):
-        self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount=self.uniswap_to_buy_mkr_value())
-        self.close()
-
     def dai_uniswap_frame(self):
         self.dapp.add_uniswap_frame(self.dapp.dai.address, action='buy', buy_amount=self.debt_value())
         self.close()
 
+    def mkr_uniswap_frame(self):
+        self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount=self.uniswap_to_buy_mkr_value())
+        self.close()
 
 
-    # This is a stand-in for an actual radio button, which would
-    # allow a choice of DAI vs. MKR to pay the fee.  
-    # Hardcoded to MKR for now.
+
     def uniswap_to_buy_mkr_value(self):
         if self.deposit_eth_value() == 0:
             return Decimal(0)
