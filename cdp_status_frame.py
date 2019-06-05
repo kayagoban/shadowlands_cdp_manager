@@ -108,7 +108,8 @@ class CDPStatusFrame(SLFrame):
                     ("Deposit ", self.lock_eth_frame, 0),
                     ("Withdraw", self.free_eth_frame, 2)
                 ],
-                layout=[1, 1, 1, 1]
+                layout=[1, 1, 1, 1],
+                add_divider=False
             )
      
             self.add_divider()
@@ -124,7 +125,8 @@ class CDPStatusFrame(SLFrame):
                     ("Pay back", self.payback_dai_frame, 0),
                     ("Generate", self.generate_dai_frame, 2)
                 ],
-                layout=[1, 1, 1, 1]
+                layout=[1, 1, 1, 1],
+                add_divider=False
             )
             self.add_divider()
             self.add_divider(draw_line=True)
@@ -135,7 +137,8 @@ class CDPStatusFrame(SLFrame):
                     ("Refresh", self.refresh_info, 2),
                     ("Back", self.close, 3) 
                 ],
-                [1, 1, 1, 1]
+                [1, 1, 1, 1],
+                add_divider=False
             )
 
         except TimeoutError:
