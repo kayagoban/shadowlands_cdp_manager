@@ -24,7 +24,7 @@ class PaybackDaiFrame(SLFrame):
 
 
         self.add_label_with_button(
-            "Your DAI: {}".format(self.your_dai), 
+            self.your_dai, 
             "Get DAI", 
             self.dai_uniswap_frame
         )
@@ -38,7 +38,7 @@ class PaybackDaiFrame(SLFrame):
         )
 
         self.add_label_with_button(
-            "Your MKR: {}".format(self.your_mkr), 
+            self.your_mkr, 
             "Get MKR", 
             self.mkr_uniswap_frame
         )
@@ -58,11 +58,11 @@ class PaybackDaiFrame(SLFrame):
 
     @cached_property
     def your_dai(self):
-        return "{:f}".format(self.dapp.dai.my_balance() / 10 ** 18)[:12]
+        return "Your DAI: {:f}".format(Decimal(self.dapp.dai.my_balance()) / 10 ** 18)[:22]
 
     @cached_property
     def your_mkr(self):
-        return "{:f}".format(self.dapp.mkr.my_balance() / 10 ** 18)[:12]
+        return "Your MKR: {:f}".format(Decimal(self.dapp.mkr.my_balance()) / 10 ** 18)[:22]
 
     def new_block_callback(self):
         pass

@@ -22,7 +22,7 @@ class CloseCDPFrame(SLFrame):
         )
 
         self.add_label_with_button(
-            "Your DAI: {}".format(self.your_dai), 
+            self.your_dai, 
             "Get DAI", 
             self.dai_uniswap_frame
         )
@@ -36,7 +36,7 @@ class CloseCDPFrame(SLFrame):
         )
 
         self.add_label_with_button(
-            "Your MKR: {}".format(self.your_mkr), 
+            self.your_mkr, 
             "Get MKR", 
             self.mkr_uniswap_frame
         )
@@ -48,11 +48,11 @@ class CloseCDPFrame(SLFrame):
 
     @cached_property
     def your_dai(self):
-        return "{:f}".format(self.dapp.dai.my_balance() / 10 ** 18)[:12]
+        return "Your DAI: {:f}".format(self.dapp.dai.my_balance() / 10 ** 18)[:22]
 
     @cached_property
     def your_mkr(self):
-        return "{:f}".format(self.dapp.mkr.my_balance() / 10 ** 18)[:12]
+        return "Your MKR: {:f}".format(self.dapp.mkr.my_balance() / 10 ** 18)[:22]
 
 
     def debt_value(self):
@@ -65,11 +65,9 @@ class CloseCDPFrame(SLFrame):
                                    
     def dai_uniswap_frame(self):
         self.dapp.add_uniswap_frame(self.dapp.dai.address, action='buy', buy_amount=self.debt_value())
-        self.close()
 
     def mkr_uniswap_frame(self):
         self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount=self.uniswap_to_buy_mkr_value())
-        self.close()
 
     def uniswap_to_buy_mkr_value(self):
         sfee = self.dapp.cdp_stability_fee / self.dapp.WAD

@@ -28,7 +28,7 @@ class CDPStatusFrame(SLFrame):
         self.dapp.add_sl_frame(GenerateDaiFrame(self.dapp, 15, 50, title="Borrow DAI"))
 
     def close_cdp_frame(self):
-        self.dapp.add_sl_frame(CloseCDPFrame(self.dapp, 13, 50, title="Close CDP"))
+        self.dapp.add_sl_frame(CloseCDPFrame(self.dapp, 9, 50, title="Close CDP"))
         self.close()
 
     def move_cdp_frame(self):
