@@ -78,7 +78,7 @@ class OpenCDPFrame(SLFrame):
     def open_cdp(self):
         # No current CDP open, but do we have a proxy ready for us?
 
-        if self.ds_proxy_address is None:
+        if self.dapp.ds_proxy_address is None:
             self.dapp.add_transaction_dialog(
                 self.dapp.sai_proxy.createOpenLockAndDraw(
                     self.dapp.proxy_registry.address, 
@@ -90,7 +90,7 @@ class OpenCDPFrame(SLFrame):
                 tx_value=Decimal(self.eth_deposit_value()),
             )
         else:
-            ds_proxy = DsProxy(self.dapp.node, address=ds_proxy_address)
+            ds_proxy = DsProxy(self.dapp.node, address=self.dapp.ds_proxy_address)
             self.dapp.add_transaction_dialog(
                 ds_proxy.lock_and_draw(
                     self.dapp.sai_proxy.address,
