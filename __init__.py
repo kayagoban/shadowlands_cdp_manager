@@ -83,7 +83,7 @@ class Dapp(SLDapp):
 
             if self.cup_id is not None:
                 self.hide_wait_frame()
-                self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.cup_id))
+                self.add_sl_frame(CDPStatusFrame(self, height=22, width=70, title="CDP {} info".format(self.cup_id)))
                 return
 
         try:
@@ -99,7 +99,7 @@ class Dapp(SLDapp):
             return
 
         self.hide_wait_frame()
-        self.add_frame(OpenCDPFrame, 24, 56, title="Open New CDP")
+        self.add_sl_frame(OpenCDPFrame(self, 24, 56, title="Open New CDP"))
 
 
     def migrate_cdp(self, lad):

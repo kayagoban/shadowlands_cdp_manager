@@ -14,4 +14,4 @@ class CupIDPromptFrame(SLFrame):
 
     def examine_choice(self):
         self.dapp.cup_id = int(cdp_id_value())
-        self.add_frame(CDPStatusFrame, height=22, width=70, title="CDP {} info".format(self.dapp.cup_id))
+        self.add_frame(CDPStatusFrame(self.dapp, height=22, width=70, title="CDP {} info".format(self.dapp.cup_id)))

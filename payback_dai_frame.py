@@ -64,6 +64,8 @@ class PaybackDaiFrame(SLFrame):
     def your_mkr(self):
         return "{:f}".format(self.dapp.mkr.my_balance() / 10 ** 18)[:12]
 
+    def new_block_callback(self):
+        pass
 
     def proj_collat_ratio(self):
         try:

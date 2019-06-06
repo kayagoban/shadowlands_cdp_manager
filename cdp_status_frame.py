@@ -9,29 +9,30 @@ from cdp_manager.generate_dai_frame import GenerateDaiFrame
 from cdp_manager.free_eth_frame import FreeEthFrame
 from cdp_manager.close_cdp_frame import CloseCDPFrame
 from cdp_manager.give_cdp_frame import GiveCDPFrame
+from cached_property import cached_property
 
 import pdb
 
 class CDPStatusFrame(SLFrame):
 
     def lock_eth_frame(self):
-        self.dapp.add_frame(LockEthFrame, 15, 50, title="Deposit Collateral")
+        self.dapp.add_sl_frame(LockEthFrame(self.dapp, 15, 50, title="Deposit Collateral"))
 
     def free_eth_frame(self):
-        self.dapp.add_frame(FreeEthFrame, 15, 50, title="Free Collateral")
+        self.dapp.add_sl_frame(FreeEthFrame(self.dapp, 15, 50, title="Free Collateral"))
 
     def payback_dai_frame(self):
-        self.dapp.add_frame(PaybackDaiFrame, 18, 50, title="Pay back DAI")
+        self.dapp.add_sl_frame(PaybackDaiFrame(self.dapp, 18, 50, title="Pay back DAI"))
 
     def generate_dai_frame(self):
-        self.dapp.add_frame(GenerateDaiFrame, 15, 50, title="Borrow DAI")
+        self.dapp.add_sl_frame(GenerateDaiFrame(self.dapp, 15, 50, title="Borrow DAI"))
 
     def close_cdp_frame(self):
-        self.dapp.add_frame(CloseCDPFrame, 9, 50, title="Close CDP")
+        self.dapp.add_sl_frame(CloseCDPFrame(self.dapp, 13, 50, title="Close CDP"))
         self.close()
 
     def move_cdp_frame(self):
-        self.dapp.add_frame(GiveCDPFrame, 6, 59, title="Transfer CDP to different address")
+        self.dapp.add_sl_frame(GiveCDPFrame(self.dapp, 6, 59, title="Transfer CDP to different address"))
         self.close()
 
     def refresh_info(self):
@@ -67,26 +68,78 @@ class CDPStatusFrame(SLFrame):
         self.dapp.add_message_dialog("Refreshing stats.")
 
 
-    
+    @cached_property
+    def liq_price(self):
+        return lambda: self.show_divisible('cdp_liquidation_price', 'USD')
+
+    @cached_property
+    def collat_ratio(self):
+        return lambda: self.show_divisible('cdp_collateralization_ratio', '%')
+
+    @cached_property
+    def curr_price(self):
+        return lambda: self.show_number(self.dapp.ether_price, 'USD')
+
+    @cached_property
+    def min_ratio(self):
+        return lambda: self.show_number(self.dapp.liquidation_ratio * 100, "%")
+
+    @cached_property
+    def liq_penalty(self):
+        return lambda: self.show_number(self.dapp.liquidation_penalty, "%")
+
+    @cached_property
+    def stab_fee(self):
+        return lambda: self.show_number(self.dapp.stability_fee, "%")
+
+    @cached_property
+    def deposited(self):
+        return lambda: self.show_number(self.dapp.collateral_eth_value / self.dapp.WAD, "ETH")
+
+    @cached_property
+    def max_avail(self):
+        return lambda: self.show_divisible('eth_available_to_withdraw', "ETH")
+
+    @cached_property
+    def peth_collateral(self):
+        return lambda: self.show_number(self.dapp.collateral_peth_value / self.dapp.WAD,"PETH")
+
+    @cached_property
+    def peth_avail(self):
+        return lambda: self.show_number(self.dapp.peth_available_to_withdraw,"PETH")
+    @cached_property
+    def usd_value(self):
+        return lambda: self.show_number(self.dapp.ether_price * self.dapp.collateral_eth_value / self.dapp.WAD,"USD")
+
+    @cached_property
+    def usd_avail(self):
+        return lambda: self.show_number(self.dapp.eth_available_to_withdraw * self.dapp.ether_price, "USD")
+
+    #@cached_property
+    #def (self):
+    #    return
+
+
+
 
     def initialize(self):
         try:
 
             self.add_label_quad("Liq. Price:", 
-                                lambda: self.show_divisible('cdp_liquidation_price', 'USD'),
+                                self.liq_price,
                                 "Collat. Ratio:", 
-                                lambda: self.show_divisible('cdp_collateralization_ratio', '%'), 
+                                self.collat_ratio, 
                                 add_divider=False)
 
             self.add_label_quad("Current Price:", 
-                                lambda: self.show_number(self.dapp.ether_price, 'USD'), 
+                                self.curr_price, 
                                 "Minimum Ratio:", 
-                                lambda: self.show_number(self.dapp.liquidation_ratio * 100, "%"), add_divider=False)
+                                self.min_ratio, add_divider=False)
 
             self.add_label_quad("Liq. penalty:", 
-                                lambda: self.show_number(self.dapp.liquidation_penalty, "%"), 
+                                self.liq_penalty, 
                                 "Stability Fee:", 
-                                lambda: self.show_number(self.dapp.stability_fee, "%"), 
+                                self.stab_fee, 
                                 add_divider=False)
 
             self.add_divider(draw_line=True)
@@ -94,15 +147,15 @@ class CDPStatusFrame(SLFrame):
             self.add_label("ETH Collateral")
 
             self.add_label_quad("Deposited:", 
-                                lambda: self.show_number(self.dapp.collateral_eth_value / self.dapp.WAD, "ETH"),
+                                self.deposited,
                                 "Max available:", 
-                                lambda: self.show_divisible('eth_available_to_withdraw', "ETH"), 
+                                self.max_avail,  
                                 add_divider=False)
 
-            self.add_label_quad("", lambda: self.show_number(self.dapp.collateral_peth_value / self.dapp.WAD,"PETH"),
-                                "", lambda: self.show_number(self.dapp.peth_available_to_withdraw,"PETH"), add_divider=False)
-            self.add_label_quad("", lambda: self.show_number(self.dapp.ether_price * self.dapp.collateral_eth_value / self.dapp.WAD,"USD"),
-                                "", lambda: self.show_number(self.dapp.eth_available_to_withdraw * self.dapp.ether_price, "USD"), add_divider=False)
+            self.add_label_quad("", self.peth_collateral,
+                                "", self.peth_avail, add_divider=False)
+            self.add_label_quad("", self.usd_value,
+                                "", self.usd_avail, add_divider=False)
             self.add_button_row(
                 [
                     ("Deposit ", self.lock_eth_frame, 0),
@@ -134,7 +187,8 @@ class CDPStatusFrame(SLFrame):
                 [
                     ("Move CDP", self.move_cdp_frame, 0),
                     ("Close CDP", self.close_cdp_frame, 1),
-                    ("Refresh", self.refresh_info, 2),
+                    #("Refresh", self.refresh_info, 2),
+                    ("Refresh", self.dapp._expire_cached_properties, 2),
                     ("Back", self.close, 3) 
                 ],
                 [1, 1, 1, 1],
@@ -144,6 +198,9 @@ class CDPStatusFrame(SLFrame):
         except TimeoutError:
             self.dapp.add_message_dialog("Timed out trying to get CDP status")
             self.close()
+
+    def new_block_callback(self):
+        pass
 
     def show_number(self, number, denomination=None):
         display_value = str(number)[:8]
