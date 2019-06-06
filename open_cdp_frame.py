@@ -60,7 +60,7 @@ class OpenCDPFrame(SLFrame):
             c_ratio = self.dapp.projected_collateralization_ratio(self.dai_value(),  self.deposit_eth_value())
             if c_ratio == 0:
                 return "Undefined"
-            return str(c_ratio / self.dapp.WAD)[0:12]
+            return "{:f}".format(c_ratio / self.dapp.WAD)[0:12] + " %"
         except (decimal.DivisionByZero, decimal.InvalidOperation):
             return "Undefined"
 
@@ -70,7 +70,7 @@ class OpenCDPFrame(SLFrame):
             l_price = self.dapp.projected_liquidation_price(self.dai_value(), self.deposit_eth_value())
             if l_price == 0:
                 return "Undefined"
-            return str(l_price * self.dapp.WAD)[0:12]
+            return "{:f}".format(l_price * self.dapp.WAD)[0:12] + " ETH"
         except (decimal.InvalidOperation, decimal.DivisionByZero):
             return "Undefined"
 
@@ -78,29 +78,34 @@ class OpenCDPFrame(SLFrame):
     def open_cdp(self):
         # No current CDP open, but do we have a proxy ready for us?
 
-        if self.dapp.ds_proxy_address is None:
-            self.dapp.add_transaction_dialog(
-                self.dapp.sai_proxy.createOpenLockAndDraw(
-                    self.dapp.proxy_registry.address, 
-                    self.dapp.tub.address, 
-                    self.dai_withdrawal_value()
-                ),
-                title="Open CDP",
-                gas_limit=980000,
-                tx_value=Decimal(self.eth_deposit_value()),
-            )
-        else:
-            ds_proxy = DsProxy(self.dapp.node, address=self.dapp.ds_proxy_address)
-            self.dapp.add_transaction_dialog(
-                ds_proxy.lock_and_draw(
-                    self.dapp.sai_proxy.address,
-                    self.dapp.tub.address, 
-                    self.dai_withdrawal_value()
-                ),
-                title="Open CDP",
-                gas_limit=980000,
-                tx_value=Decimal(self.eth_deposit_value()),
-            )
+        try:
+            if self.dapp.ds_proxy_address is None:
+                self.dapp.add_transaction_dialog(
+                    self.dapp.sai_proxy.createOpenLockAndDraw(
+                        self.dapp.proxy_registry.address, 
+                        self.dapp.tub.address, 
+                        self.dai_value()
+                    ),
+                    title="Open CDP",
+                    gas_limit=980000,
+                    tx_value=Decimal(self.eth_deposit_value()),
+                )
+            else:
+                ds_proxy = DsProxy(self.dapp.node, address=self.dapp.ds_proxy_address)
+                self.dapp.add_transaction_dialog(
+                    ds_proxy.lock_and_draw(
+                        self.dapp.sai_proxy.address,
+                        self.dapp.tub.address, 
+                        self.dai_value()
+                    ),
+                    title="Open CDP",
+                    gas_limit=980000,
+                    tx_value=Decimal(self.eth_deposit_value()),
+                )
+        except InvalidOperation:
+            self.dapp.add_message_dialog("Check your input values.")
+            return
+
         self.close()
         
 
