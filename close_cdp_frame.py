@@ -1,6 +1,7 @@
 from shadowlands.sl_dapp import SLFrame
 from decimal import Decimal, DivisionByZero, InvalidOperation, DivisionUndefined
 
+from cached_property import cached_property
 from shadowlands.tui.debug import debug
 from cdp_manager.lock_eth_frame import LockEthFrame
 #from cdp_manager.cdp_status_frame import CDPStatusFrame
@@ -11,30 +12,48 @@ import pdb
 class CloseCDPFrame(SLFrame):
 
     def initialize(self):
-        info_text = [
-            "Closing your CDP requires paying back your",
-            "outstanding Dai debt, as well as the ",
-            "accumulated stability fee, in MKR."
-        ]
 
-        for i in info_text:
-            self.add_label(i, add_divider=False)
-
-        self.add_divider()
-
-        self.add_label("Outstanding debt:", add_divider=False)
-        self.add_label_with_button(
-            "{:f}".format( self.debt_value())[0:16] + " DAI", "Get DAI", self.dai_uniswap_frame
+        self.add_label_row([
+            ("Outstanding debt:", 0),
+            ("{:f}".format( self.debt_value())[0:16] + " DAI", 1)
+        ],
+            add_divider=False,
+            layout=[4, 4]
         )
 
-        self.add_label("Stability fee:", add_divider=False)
-        self.add_label_with_button(self.stability_fee, "Get MKR", self.mkr_uniswap_frame)
+        self.add_label_with_button(
+            "Your DAI: {}".format(self.your_dai), 
+            "Get DAI", 
+            self.dai_uniswap_frame
+        )
 
+        self.add_label_row([
+            ("Stability Fee:", 0),
+            (self.stability_fee, 1)
+        ],
+            add_divider=False,
+            layout=[4, 4]
+        )
+
+        self.add_label_with_button(
+            "Your MKR: {}".format(self.your_mkr), 
+            "Get MKR", 
+            self.mkr_uniswap_frame
+        )
 
         self.add_button_row([
             ("Close CDP", self.close_cdp_choice, 0),
-            ("Cancel", self.close, 1)
+            ("Cancel", self.close, 3)
         ])
+
+    @cached_property
+    def your_dai(self):
+        return "{:f}".format(self.dapp.dai.my_balance() / 10 ** 18)[:12]
+
+    @cached_property
+    def your_mkr(self):
+        return "{:f}".format(self.dapp.mkr.my_balance() / 10 ** 18)[:12]
+
 
     def debt_value(self):
         try:

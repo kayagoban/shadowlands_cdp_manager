@@ -14,7 +14,6 @@ class PaybackDaiFrame(SLFrame):
         self.add_label("How much DAI would you like to pay back?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='')
         
-        #self.add_label("Outstanding DAI debt:", add_divider=False)
         self.add_label_row([
             ("Outstanding debt:", 0),
             ("{:f}".format( self.debt_value())[0:16] + " DAI", 1)
@@ -23,9 +22,6 @@ class PaybackDaiFrame(SLFrame):
             layout=[4, 4]
         )
 
-        #self.add_label_with_button(
-        #    "{:f}".format( self.debt_value())[0:16] + " DAI", "Get DAI", self.dai_uniswap_frame
-        #)
 
         self.add_label_with_button(
             "Your DAI: {}".format(self.your_dai), 
@@ -47,9 +43,6 @@ class PaybackDaiFrame(SLFrame):
             self.mkr_uniswap_frame
         )
 
-
-        #self.add_label(self.stability_fee_label, add_divider=False)
-        #self.add_label_with_button(self.stability_fee, "Get MKR", self.mkr_uniswap_frame)
 
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
