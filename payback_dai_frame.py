@@ -5,27 +5,51 @@ from decimal import Decimal, InvalidOperation, DivisionByZero
 
 import pdb
 from shadowlands.tui.debug import debug
+from cached_property import cached_property
 
 class PaybackDaiFrame(SLFrame):
-
-    def proj_collat_ratio(self):
-        try:
-            return self.projected_collateralization_ratio 
-        except:
-            return "Unavailable"
 
     def initialize(self):
 
         self.add_label("How much DAI would you like to pay back?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='')
         
-        self.add_label("Outstanding DAI debt:", add_divider=False)
-        self.add_label_with_button(
-            "{:f}".format( self.debt_value())[0:16] + " DAI", "Get DAI", self.dai_uniswap_frame
+        #self.add_label("Outstanding DAI debt:", add_divider=False)
+        self.add_label_row([
+            ("Outstanding debt:", 0),
+            ("{:f}".format( self.debt_value())[0:16] + " DAI", 1)
+        ],
+            add_divider=False,
+            layout=[4, 4]
         )
 
-        self.add_label(self.stability_fee_label, add_divider=False)
-        self.add_label_with_button(self.stability_fee, "Get MKR", self.mkr_uniswap_frame)
+        #self.add_label_with_button(
+        #    "{:f}".format( self.debt_value())[0:16] + " DAI", "Get DAI", self.dai_uniswap_frame
+        #)
+
+        self.add_label_with_button(
+            "Your DAI: {}".format(self.your_dai), 
+            "Get DAI", 
+            self.dai_uniswap_frame
+        )
+
+        self.add_label_row([
+            ("Stability Fee:", 0),
+            (self.stability_fee, 1)
+        ],
+            add_divider=False,
+            layout=[4, 4]
+        )
+
+        self.add_label_with_button(
+            "Your MKR: {}".format(self.your_mkr), 
+            "Get MKR", 
+            self.mkr_uniswap_frame
+        )
+
+
+        #self.add_label(self.stability_fee_label, add_divider=False)
+        #self.add_label_with_button(self.stability_fee, "Get MKR", self.mkr_uniswap_frame)
 
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
@@ -34,11 +58,25 @@ class PaybackDaiFrame(SLFrame):
         self.add_button_row(
             [
                 ("Pay back DAI", self.wipe_dai_choice, 0),
-                #("Get MKR", self.uniswap_frame, 1),
                 ("Back", self.close, 2)
             ], 
             layout=[6, 5, 5]
         )
+
+    @cached_property
+    def your_dai(self):
+        return "{:f}".format(self.dapp.dai.my_balance() / 10 ** 18)[:12]
+
+    @cached_property
+    def your_mkr(self):
+        return "{:f}".format(self.dapp.mkr.my_balance() / 10 ** 18)[:12]
+
+
+    def proj_collat_ratio(self):
+        try:
+            return self.projected_collateralization_ratio 
+        except:
+            return "Unavailable"
 
     def debt_value(self):
         try:
@@ -50,20 +88,20 @@ class PaybackDaiFrame(SLFrame):
                                    
 
     def dai_uniswap_frame(self):
-        self.dapp.add_uniswap_frame(self.dapp.dai.address, action='buy', buy_amount=self.debt_value())
+        self.dapp.add_uniswap_frame(self.dapp.dai.address, action='buy', buy_amount=self.deposit_eth_value())
         self.close()
 
     def mkr_uniswap_frame(self):
-        self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount=self.uniswap_to_buy_mkr_value())
+        #debug(); pdb.set_trace()
+        self.dapp.add_uniswap_frame(self.dapp.mkr.address, action='buy', buy_amount="{:f}".format(self.uniswap_to_buy_mkr_value()))
         self.close()
-
-
 
     def uniswap_to_buy_mkr_value(self):
         if self.deposit_eth_value() == 0:
             return Decimal(0)
-        sfee = self.dapp.proportional_stability_fee( self.deposit_eth_value())
-        return sfee + sfee * Decimal(0.01)
+        sfee = self.dapp.proportional_stability_fee( self.deposit_eth_value()) 
+        return sfee 
+
 
     def stability_fee_label(self):
         return "Stability fee(MKR):"
