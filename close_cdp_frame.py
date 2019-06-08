@@ -22,7 +22,7 @@ class CloseCDPFrame(SLFrame):
         )
 
         self.add_label_with_button(
-            self.your_dai, 
+            lambda: self.your_dai, 
             "Get DAI", 
             self.dai_uniswap_frame
         )
@@ -36,7 +36,7 @@ class CloseCDPFrame(SLFrame):
         )
 
         self.add_label_with_button(
-            self.your_mkr, 
+            lambda: self.your_mkr, 
             "Get MKR", 
             self.mkr_uniswap_frame
         )
@@ -109,12 +109,33 @@ class CloseCDPFrame(SLFrame):
                 gas_limit=50000,
             )
             self.dapp.add_message_dialog(
-                "First we must allow the CDP proxy to send {}".format(fee_denomination)
+                "We must allow the CDP proxy to send {}".format(fee_denomination)
             )
-            self.close()
             return
 
+        # Check DAI allowance
 
+        fee_denomination = 'DAI'
+        fee_erc20_contract = self.dapp.dai
+
+        allowance = fee_erc20_contract.allowance(
+            self.dapp.node.credstick.address, 
+            self.dapp.ds_proxy.address
+        )
+
+        if allowance < self.dapp.debt_value:
+            self.dapp.add_transaction_dialog(
+                fee_erc20_contract.approve(
+                    self.dapp.ds_proxy.address, 
+                    self.dapp.MAX_WEI
+                ),
+                title="Allow cdp proxy to send {}".format(fee_denomination),
+                gas_limit=50000,
+            )
+            self.dapp.add_message_dialog(
+                "We must allow the CDP proxy to send {}".format(fee_denomination)
+            )
+            return
 
 
         # unlock if needed - and then back to this frame

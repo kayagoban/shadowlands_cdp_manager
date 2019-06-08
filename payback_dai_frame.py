@@ -24,7 +24,7 @@ class PaybackDaiFrame(SLFrame):
 
 
         self.add_label_with_button(
-            self.your_dai, 
+            lambda: self.your_dai, 
             "Get DAI", 
             self.dai_uniswap_frame
         )
@@ -38,7 +38,7 @@ class PaybackDaiFrame(SLFrame):
         )
 
         self.add_label_with_button(
-            self.your_mkr, 
+            lambda: self.your_mkr, 
             "Get MKR", 
             self.mkr_uniswap_frame
         )
