@@ -17,7 +17,7 @@ class GenerateDaiFrame(SLFrame):
     def initialize(self):
         self.add_label("How much DAI would you like to generate?", add_divider=False)
         self.deposit_textbox_value = self.add_textbox("DAI Value:", default_value='')
-        self.add_label("Current account balance (ETH):", add_divider=False)
+        self.add_label("Available to generate (DAI):", add_divider=False)
         self.add_label(str(self.dapp.dai_available_to_generate)[0:12])
         self.add_label("Projected liquidation price:", add_divider=False)
         self.add_label(self.projected_liquidation_price)
